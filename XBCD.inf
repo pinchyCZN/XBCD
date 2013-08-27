@@ -1,0 +1,77 @@
+[Version]
+Signature="$CHICAGO$"
+Class=HIDClass
+ClassGuid={745a17a0-74d3-11d0-b6fe-00a0c90f57da}
+Provider=%prov%
+DriverVer=05/13/2005, 1.0.7
+
+; Driver information
+; ------------------
+[Manufacturer]
+%Mfg%=DeviceList
+
+;Windows 98/ME/2000/XP
+[DeviceList]
+%XBCD.DeviceDesc%	=Install, USB\CLASS_58&SUBCLASS_42	; Generic
+%XBCD.DeviceDesc%	=Install, USB\VID_044F&PID_0F07		; Thrustmaster Controller
+%XBCD.DeviceDesc%	=Install, USB\VID_045E&PID_0202		; Microsoft Xbox Controller
+%XBCD.DeviceDesc%	=Install, USB\VID_045E&PID_0285		; Microsoft Xbox Controller S
+%XBCD.DeviceDesc%	=Install, USB\VID_045E&PID_0289		; Microsoft Xbox Controller S
+%XBCD.DeviceDesc%	=Install, USB\VID_046D&PID_CA88		; Logitech Thunderpad
+%XBCD.DeviceDesc%	=Install, USB\VID_046D&PID_CA84		; Logitech Cordless Precision
+%XBCD.DeviceDesc%	=Install, USB\VID_05FE&PID_3030		; Chic Controller
+%XBCD.DeviceDesc%	=Install, USB\VID_05FE&PID_3031		; Chic Controller
+%XBCD.DeviceDesc%	=Install, USB\VID_0738&PID_4516		; Mad Catz 4516
+%XBCD.DeviceDesc%	=Install, USB\VID_0738&PID_4520		; Mad Catz Control Pad Pro
+%XBCD.DeviceDesc%	=Install, USB\VID_0738&PID_4526		; Mad Catz 4526
+%XBCD.DeviceDesc%	=Install, USB\VID_0738&PID_4536		; Mad Catz Microcon Xbox Controller
+%XBCD.DeviceDesc%	=Install, USB\VID_0738&PID_4556		; Mad Catz Lynx Wireless Controller
+%XBCD.DeviceDesc%	=Install, USB\VID_0738&PID_4588		; Mad Catz Blaster
+%XBCD.DeviceDesc%	=Install, USB\VID_0C12&PID_8802		; Nyko Air Flow
+%XBCD.DeviceDesc%	=Install, USB\VID_0E6F&PID_0008		; After Glow Pro Controller
+%XBCD.DeviceDesc%	=Install, USB\VID_0F30&PID_0202		; Big Ben XS XBox Controller
+%XBCD.DeviceDesc%	=Install, USB\VID_0E8F&PID_0201		; Gamexpert PS2/GC/Xbox Steering Wheel
+%XBCD_DDR.DeviceDesc%	=Install, USB\VID_12AB&PID_8809		; Konami DDR Pad
+%XBCD_DDR.DeviceDesc%	=Install, USB\VID_0738&PID_4540		; Mad Catz Beat Pad (w/ Handle)
+%XBCD_DDR.DeviceDesc%	=Install, USB\VID_0738&PID_45FF		; Mad Catz Beat Pad (w/ Handle)
+%XBCD_DDR.DeviceDesc%	=Install, USB\VID_0738&PID_6040		; Mad Catz Beat Pad Pro
+%XBCD_DDR.DeviceDesc%	=Install, USB\VID_0C12&PID_8809		; RedOctane Ignition Pad
+
+
+; Installation section
+; --------------------
+[Install]  ; Installation script for Windows 98/Me
+DriverVer=05/13/2005, 1.0.7
+AddReg=UpDateRegistry
+
+[Install.NTx86]  ; Installation script for Windows 2000/XP
+AddReg=UpDateRegistry
+
+[UpDateRegistry]
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,xbcd.sys
+
+; Defining XBCD Service
+; ---------------------------
+[Install.Services]
+Addservice=XBCD, 0x00000002, Service_Info
+
+[Install.NTx86.Services]
+Addservice=XBCD, 0x00000002, Service_Info
+
+[Service_Info]
+DisplayName    = %Service_Description%
+ServiceType    = 1                  ; SERVICE_KERNEL_DRIVER
+StartType      = 3                  ; SERVICE_DEMAND_START
+ErrorControl   = 1                  ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %10%\System32\Drivers\xbcd.sys
+
+; Strings
+;-------------------
+[Strings]
+prov="Redcl0ud"
+Service_Description="XBCD Kernel Module"
+Mfg="Redcl0ud"
+
+XBCD.DeviceDesc="XBCD XBox Gamepad"
+XBCD_DDR.DeviceDesc="XBCD XBox DDR Pad"

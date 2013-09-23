@@ -71,7 +71,7 @@ Byte   : Bit 7   6   5   4   3   2   1   0 | 7   6   5   4   3   2   1   0
 [4-5]  :   |                            X Axis                             |
 [6-7]  :   |                            Y Axis                             |
 [8-9]  :   |                            Z Axis                             |
-[10-11] :   |                            RX Axis                            |
+[10-11]:   |                            RX Axis                            |
 [12-13]:   |                            RY Axis                            |
 [14-15]:   |                            RZ Axis                            |
 [16-17]:   |                          Slider Axis                          |

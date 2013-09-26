@@ -1,3 +1,5 @@
+// http://www.codemachine.com/resources.html
+
 #define IoSkipCurrentIrpStackLocation(_Irp) \
 { \
   (_Irp)->CurrentLocation++; \
@@ -166,34 +168,114 @@ KeSaveFloatingPointState(
 #undef _DEVICE_CAPABILITIES
 #endif
 
-typedef struct _DEVICE_CAPABILITIES {
-  USHORT  Size;
-  USHORT  Version;
-  ULONG  DeviceD1 : 1;
-  ULONG  DeviceD2 : 1;
-  ULONG  LockSupported : 1;
-  ULONG  EjectSupported : 1;
-  ULONG  Removable : 1;
-  ULONG  DockDevice : 1;
-  ULONG  UniqueID : 1;
-  ULONG  SilentInstall : 1;
-  ULONG  RawDeviceOK : 1;
-  ULONG  SurpriseRemovalOK : 1;
-  ULONG  WakeFromD0 : 1;
-  ULONG  WakeFromD1 : 1;
-  ULONG  WakeFromD2 : 1;
-  ULONG  WakeFromD3 : 1;
-  ULONG  HardwareDisabled : 1;
-  ULONG  NonDynamic : 1;
-  ULONG  WarmEjectSupported : 1;
-  ULONG  NoDisplayInUI : 1;
-  ULONG  Reserved : 14;
-  ULONG  Address;
-  ULONG  UINumber;
-  DEVICE_POWER_STATE  DeviceState[PowerSystemMaximum];
-  SYSTEM_POWER_STATE  SystemWake;
-  DEVICE_POWER_STATE  DeviceWake;
-  ULONG  D1Latency;
-  ULONG  D2Latency;
-  ULONG  D3Latency;
-} DEVICE_CAPABILITIES, *PDEVICE_CAPABILITIES;
+
+typedef struct _HID_XFER_PACKET {
+  PUCHAR  reportBuffer;
+  ULONG  reportBufferLen;
+  UCHAR  reportId;
+} HID_XFER_PACKET, *PHID_XFER_PACKET;
+
+
+#define HID_BUFFER_CTL_CODE(id) \
+  CTL_CODE (FILE_DEVICE_KEYBOARD, (id), METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define HID_IN_CTL_CODE(id) \
+  CTL_CODE (FILE_DEVICE_KEYBOARD, (id), METHOD_IN_DIRECT, FILE_ANY_ACCESS)
+#define HID_OUT_CTL_CODE(id) \
+  CTL_CODE (FILE_DEVICE_KEYBOARD, (id), METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
+
+
+#define IOCTL_GET_PHYSICAL_DESCRIPTOR         HID_OUT_CTL_CODE(102)
+#define IOCTL_HID_GET_FEATURE                 HID_OUT_CTL_CODE(100)
+#define IOCTL_HID_GET_HARDWARE_ID             HID_OUT_CTL_CODE(103)
+#define IOCTL_HID_GET_INDEXED_STRING          HID_OUT_CTL_CODE(120)
+#define IOCTL_HID_GET_INPUT_REPORT            HID_OUT_CTL_CODE(104)
+#define IOCTL_HID_GET_MANUFACTURER_STRING     HID_OUT_CTL_CODE(110)
+#define IOCTL_GET_NUM_DEVICE_INPUT_BUFFERS    HID_BUFFER_CTL_CODE(104)
+#define IOCTL_HID_GET_POLL_FREQUENCY_MSEC     HID_BUFFER_CTL_CODE(102)
+#define IOCTL_HID_GET_PRODUCT_STRING          HID_OUT_CTL_CODE(111)
+#define IOCTL_HID_GET_SERIALNUMBER_STRING     HID_OUT_CTL_CODE(112)
+#define IOCTL_HID_SET_FEATURE                 HID_IN_CTL_CODE(100)
+#define IOCTL_SET_NUM_DEVICE_INPUT_BUFFERS    HID_BUFFER_CTL_CODE(105)
+#define IOCTL_HID_SET_OUTPUT_REPORT           HID_IN_CTL_CODE(101)
+#define IOCTL_HID_SET_POLL_FREQUENCY_MSEC     HID_BUFFER_CTL_CODE(103)
+
+#define IOCTL_HID_GET_MS_GENRE_DESCRIPTOR     HID_OUT_CTL_CODE(121)
+
+
+
+typedef struct _USBD_INTERFACE_LIST_ENTRY {
+  PUSB_INTERFACE_DESCRIPTOR   InterfaceDescriptor;
+  PUSBD_INTERFACE_INFORMATION Interface;
+} USBD_INTERFACE_LIST_ENTRY, *PUSBD_INTERFACE_LIST_ENTRY;
+
+
+/* URB TransferFlags constants */
+#define USBD_TRANSFER_DIRECTION(x)        ((x) & USBD_TRANSFER_DIRECTION_IN)
+#define USBD_TRANSFER_DIRECTION_OUT       0   
+#define USBD_TRANSFER_DIRECTION_BIT       0
+#define USBD_SHORT_TRANSFER_OK_BIT        1
+#define USBD_START_ISO_TRANSFER_ASAP_BIT  2
+#define USBD_DEFAULT_PIPE_TRANSFER_BIT    3
+#define USBD_DEFAULT_PIPE_TRANSFER        (1 << USBD_DEFAULT_PIPE_TRANSFER_BIT)
+
+
+/*
+ * VOID
+ * IoCopyCurrentIrpStackLocationToNext(
+ *   IN PIRP  Irp)
+ */
+#define IoCopyCurrentIrpStackLocationToNext(_Irp) \
+{ \
+  PIO_STACK_LOCATION _IrpSp; \
+  PIO_STACK_LOCATION _NextIrpSp; \
+  _IrpSp = IoGetCurrentIrpStackLocation(_Irp); \
+  _NextIrpSp = IoGetNextIrpStackLocation(_Irp); \
+  RtlCopyMemory(_NextIrpSp, _IrpSp, \
+    FIELD_OFFSET(IO_STACK_LOCATION, CompletionRoutine)); \
+  _NextIrpSp->Control = 0; \
+}
+
+
+#define UsbBuildGetDescriptorRequest(urb, \
+                                     length, \
+                                     descriptorType, \
+                                     index, \
+                                     languageId, \
+                                     transferBuffer, \
+                                     transferBufferMDL, \
+                                     transferBufferLength, \
+                                     link) { \
+            (urb)->UrbHeader.Function =  URB_FUNCTION_GET_DESCRIPTOR_FROM_DEVICE; \
+            (urb)->UrbHeader.Length = (length); \
+            (urb)->UrbControlDescriptorRequest.TransferBufferLength = (transferBufferLength); \
+            (urb)->UrbControlDescriptorRequest.TransferBufferMDL = (transferBufferMDL); \
+            (urb)->UrbControlDescriptorRequest.TransferBuffer = (transferBuffer); \
+            (urb)->UrbControlDescriptorRequest.DescriptorType = (descriptorType); \
+            (urb)->UrbControlDescriptorRequest.Index = (index); \
+            (urb)->UrbControlDescriptorRequest.LanguageId = (languageId); \
+            (urb)->UrbControlDescriptorRequest.UrbLink = (link); }
+
+#define UsbBuildSelectConfigurationRequest(urb, \
+                                         length, \
+                                         configurationDescriptor) { \
+            (urb)->UrbHeader.Function =  URB_FUNCTION_SELECT_CONFIGURATION; \
+            (urb)->UrbHeader.Length = (length); \
+            (urb)->UrbSelectConfiguration.ConfigurationDescriptor = (configurationDescriptor);    }
+
+
+#define UsbBuildInterruptOrBulkTransferRequest(urb, \
+                                               length, \
+                                               pipeHandle, \
+                                               transferBuffer, \
+                                               transferBufferMDL, \
+                                               transferBufferLength, \
+                                               transferFlags, \
+                                               link) { \
+            (urb)->UrbHeader.Function = URB_FUNCTION_BULK_OR_INTERRUPT_TRANSFER; \
+            (urb)->UrbHeader.Length = (length); \
+            (urb)->UrbBulkOrInterruptTransfer.PipeHandle = (pipeHandle); \
+            (urb)->UrbBulkOrInterruptTransfer.TransferBufferLength = (transferBufferLength); \
+            (urb)->UrbBulkOrInterruptTransfer.TransferBufferMDL = (transferBufferMDL); \
+            (urb)->UrbBulkOrInterruptTransfer.TransferBuffer = (transferBuffer); \
+            (urb)->UrbBulkOrInterruptTransfer.TransferFlags = (transferFlags); \
+            (urb)->UrbBulkOrInterruptTransfer.UrbLink = (link); }

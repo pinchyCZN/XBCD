@@ -127,6 +127,10 @@ SOURCE=.\XBCD_usb.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
+SOURCE=.\extras.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\SemiAxis.h
 # End Source File
 # Begin Source File

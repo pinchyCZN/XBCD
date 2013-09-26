@@ -19,6 +19,7 @@
 */
 
 #include "XBCD_driver.h"
+#include "extras.h"
 
 ULONG _fltused = 0;
 

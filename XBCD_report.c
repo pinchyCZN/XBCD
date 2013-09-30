@@ -312,7 +312,7 @@ USHORT GetRepDesc(PDEVICE_EXTENSION pDevExt, PUCHAR Buffer)
 		0x81, 0x02									//     INPUT (Data,Var,Abs)
 	};
 
-	KdPrint(("GetRepDesc - entry"));
+	KdPrint(("GetRepDesc - entry test"));
 
 	if(!Buffer)
 	{

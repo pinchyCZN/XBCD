@@ -103,7 +103,7 @@
 /*!
 Defines for the output buffer length and data locations
 */
-#define OUT_BUFFER_LEN 40
+#define OUT_BUFFER_LEN (40)
 
 /*! The number of buttons on the output (i.e. Windows) side */
 #define NR_OUT_BUTTONS 24

@@ -95,6 +95,8 @@ Byte   : Bit 7   6   5   4   3   2   1   0 | 7   6   5   4   3   2   1   0
 [36-37]:   |                         Right-Stick X                         |
 [38-39]:   |                         Right-Stick Y                         |
 
+[40,41,42] : keyboard
+
 Output
 -------
 
@@ -229,6 +231,15 @@ UCHAR RD3[]=
 	0x75, 0xA8,			//     REPORT_SIZE (168)
     0x95, 0x01,			//     REPORT_COUNT (1)
     0x81, 0x02,			//     INPUT (Data,Var,Abs)
+/*
+    0x05, 0x01,			//     USAGE_PAGE desktop  7=keyboard
+    0x09, 0x06,			//     USAGE (keybaord)
+	0x15, 0x00,			//     LOGICAL_MINIMUM (0)
+    0x25, 0x65,			//     LOGICAL_MAXIMUM (101)
+    0x75, 0x8,			//     REPORT_SIZE (8)
+    0x95, 0x03,			//     REPORT_COUNT (3)
+    0x81, 0x02,			//     INPUT (Data,Ary,Abs)
+*/
 	0xc0,				//   END_COLLECTION
 
 	/*!
@@ -280,9 +291,24 @@ UCHAR RD3[]=
     0x09, 0x00,			//     USAGE (Undefined)
     0xb1, 0x02,			//     FEATURE (Data,Var,Abs)
 	0xc0,				//   END_COLLECTION
-
+/*
+	0xa1, 0x02,			//   COLLECTION (Logical)
+	0x85, 0x05,			//     REPORT_ID (5)
+    0x05, 0x07,			//     USAGE_PAGE (Keyboard)
+    0x09, 0x06,			//     USAGE (keybaord)
+	0x15, 0x00,			//     LOGICAL_MINIMUM (0)
+    0x25, 0x65,			//     LOGICAL_MAXIMUM (101)
+    0x75, 0x8,			//     REPORT_SIZE (8)
+    0x95, 0x03,			//     REPORT_COUNT (3)
+    0x81, 0x00,			//     INPUT (Data,Ary,Abs)
+	0xc0,				//   END_COLLECTION
+*/
     0xc0				// END_COLLECTION
 };
+//adaptoid
+//12 01 00 01 00 00 00 08 F7 06 01 00 06 01 01 02 00 01
+//09 02 22 00 01 01 00 80 32 09 04 00 00 01 03 00 00 00 09 21 00 01 00 01 22 3E 00 07 05 81 03 05 00 0A
+
 
 USHORT GetRepDesc(PDEVICE_EXTENSION pDevExt, PUCHAR Buffer)
 {

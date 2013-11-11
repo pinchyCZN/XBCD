@@ -142,7 +142,7 @@ NTSTATUS XBCDDispatchIntDevice(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 				LARGE_INTEGER timeout;
 
 				KdPrint(("XBCDDispatchIntDevice - IOCTL_HID_READ_REPORT entry"));
-
+				//DbgPrint("***size:%08X",stack->Parameters.DeviceIoControl.OutputBufferLength);
 				if(stack->Parameters.DeviceIoControl.OutputBufferLength < OUT_BUFFER_LEN)
 				{
 					KdPrint(("IOCTL_HID_READ_REPORT - Buffer is too small"));

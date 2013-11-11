@@ -231,15 +231,6 @@ UCHAR RD3[]=
 	0x75, 0xA8,			//     REPORT_SIZE (168)
     0x95, 0x01,			//     REPORT_COUNT (1)
     0x81, 0x02,			//     INPUT (Data,Var,Abs)
-/*
-    0x05, 0x01,			//     USAGE_PAGE desktop  7=keyboard
-    0x09, 0x06,			//     USAGE (keybaord)
-	0x15, 0x00,			//     LOGICAL_MINIMUM (0)
-    0x25, 0x65,			//     LOGICAL_MAXIMUM (101)
-    0x75, 0x8,			//     REPORT_SIZE (8)
-    0x95, 0x03,			//     REPORT_COUNT (3)
-    0x81, 0x02,			//     INPUT (Data,Ary,Abs)
-*/
 	0xc0,				//   END_COLLECTION
 
 	/*!
@@ -291,19 +282,42 @@ UCHAR RD3[]=
     0x09, 0x00,			//     USAGE (Undefined)
     0xb1, 0x02,			//     FEATURE (Data,Var,Abs)
 	0xc0,				//   END_COLLECTION
+    0xc0,				// END_COLLECTION
 /*
-	0xa1, 0x02,			//   COLLECTION (Logical)
-	0x85, 0x05,			//     REPORT_ID (5)
-    0x05, 0x07,			//     USAGE_PAGE (Keyboard)
-    0x09, 0x06,			//     USAGE (keybaord)
-	0x15, 0x00,			//     LOGICAL_MINIMUM (0)
-    0x25, 0x65,			//     LOGICAL_MAXIMUM (101)
-    0x75, 0x8,			//     REPORT_SIZE (8)
-    0x95, 0x03,			//     REPORT_COUNT (3)
-    0x81, 0x00,			//     INPUT (Data,Ary,Abs)
-	0xc0,				//   END_COLLECTION
+	0x05, 0x01,         //  Usage Page (Desktop),
+	0x09, 0x06,         //  Usage (Keyboard),
+	0xA1, 0x01,         //  Collection (Application),
+	0x85, 0x05,         //      Report ID (5),
+	0x05, 0x07,         //      Usage Page (Keyboard),
+	0x19, 0xE0,         //      Usage Minimum (KB Leftcontrol),
+	0x29, 0xE7,         //      Usage Maximum (KB Right GUI),
+	0x15, 0x00,         //      Logical Minimum (0),
+	0x25, 0x01,         //      Logical Maximum (1),
+	0x75, 0x01,         //      Report Size (1),
+	0x95, 0x08,         //      Report Count (8),
+	0x81, 0x02,         //      Input (Variable),
+	0x95, 0x01,         //      Report Count (1),
+	0x75, 0x08,         //      Report Size (8),
+	0x81, 0x01,         //      Input (Constant),
+	0x95, 0x05,         //      Report Count (5),
+	0x75, 0x01,         //      Report Size (1),
+	0x05, 0x08,         //      Usage Page (LED),
+	0x19, 0x01,         //      Usage Minimum (01h),
+	0x29, 0x05,         //      Usage Maximum (05h),
+	0x91, 0x02,         //      Output (Variable),
+	0x95, 0x01,         //      Report Count (1),
+	0x75, 0x03,         //      Report Size (3),
+	0x91, 0x01,         //      Output (Constant),
+	0x95, 0x0A,         //      Report Count (10),
+	0x75, 0x08,         //      Report Size (8),
+	0x05, 0x07,         //      Usage Page (Keyboard),
+	0x19, 0x00,         //      Usage Minimum (None),
+	0x2A, 0xA5, 0x00,   //      Usage Maximum (A5h),
+	0x15, 0x00,         //      Logical Minimum (0),
+	0x26, 0xA5, 0x00,   //      Logical Maximum (165),
+	0x81, 0x00,         //      Input,
+	0xC0,               //  End Collection,
 */
-    0xc0				// END_COLLECTION
 };
 //adaptoid
 //12 01 00 01 00 00 00 08 F7 06 01 00 06 01 01 02 00 01

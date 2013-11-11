@@ -110,6 +110,10 @@ PostBuild_Cmds=copy $(TargetPath)  "C:\WINDOWS\system32\drivers\"
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=.\adaptoid.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\RemoveLock.c
 # End Source File
 # Begin Source File

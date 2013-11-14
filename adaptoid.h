@@ -90,3 +90,113 @@
 	0x75, 0x01,         //      Report Size (1),
 	0x81, 0x01,         //      Input (Constant),
 	0xC0                //  End Collection
+
+
+////////////////////////XBOX
+/*
+	0x05, 0x01,			// USAGE_PAGE (Generic Desktop)
+	0x09, pDevExt->DevUs// USAGE (Gamepad or Joystick)
+	0xa1, 0x01,			// COLLECTION (Application)
+	0xa1, 0x02,			//   COLLECTION (Logical)
+	0x85, 0x01,			//     REPORT_ID (1)
+
+	0x05, 0x09,			//     USAGE_PAGE (Button)
+	0x15, 0x00,			//     LOGICAL_MINIMUM (0)
+	0x25, 0x01,			//     LOGICAL_MAXIMUM (1)
+	0x35, 0x00,			//     PHYSICAL_MINIMUM (0)
+	0x45, 0x01			//     PHYSICAL_MAXIMUM (1)
+
+	0x19, 0x01,			//     USAGE_MININUM (Button 1)
+	0x29, pDevExt->nButt//     USAGE_MAXIMUM (Max 24 buttons)
+	0x75, 0x01,			//     REPORT_SIZE (1)
+	0x95, pDevExt->nButt//     REPORT_COUNT (Max 24 buttons)
+	0x81, 0x02			//     INPUT (Data,Var,Abs)
+
+	0x05, 0x01,			//     USAGE_PAGE (Generic Desktop)
+	0x09, 0x3A,			//     USAGE (Counted Buffer)
+	0x75, (NR_OUT_BUTTON//     REPORT_SIZE (24-#buttons)
+	0x95, 0x01,			//     REPORT_COUNT (1)
+	0x81, 0x02			//     INPUT (Data,Var,Abs)
+
+    0x75, 0x10,			//     REPORT_SIZE (16)
+    0x16, 0x01, 0x80,	//     LOGICAL_MINIMUM (-32767)
+    0x26, 0xff, 0x7f,	//     LOGICAL_MAXIMUM (32767)
+    0x35, 0x00,			//     PHYSICAL_MINUMUM (0)
+    0x46, 0xff, 0x7f,	//     PHYSICAL_MAXIMUM (32767)
+
+    0x05, 0x01,			//     USAGE_PAGE (Generic Desktop)
+    0x95, 0x07,			//     REPORT_COUNT (7) => seven fields (...of the above defined 16 bits)
+    0x09, 0x30,			//     USAGE (X)
+    0x09, 0x31			//     USAGE (Y)
+
+	0x09, 0x32,			//     USAGE (Z)
+	0x09, 0x33,			//     USAGE (Rx) - usage page 1 generic desktop
+	0x09, 0x34,			//     USAGE (Ry) - usage page 1 generic desktop
+	0x09, 0x35,			//     USAGE (Rz) - usage page 1 generic desktop
+	0x09, 0x36			//     USAGE (Slider) - usage page 1 generic desktop
+
+    0x81, 0x02,			//     INPUT (Data,Var,Abs)
+
+    0x05, 0x01,			//     USAGE_PAGE (Generic Desktop)
+    0x09, 0x39,			//     USAGE (Hat switch)
+    0x15, 0x00,			//     LOGICAL_MINIMUM (0)
+    0x25, 0x07,			//     LOGICAL_MAXIMUM (7)
+    0x35, 0x00,			//     PHYSICAL_MINIMUM (0)
+    0x46, 0x3b,0x01,	//     PHYSICAL_MAXIMUM (315)
+    0x65, 0x14,			//     UNIT (Eng Rot:Angular Pos)
+    0x75, 0x04,			//     REPORT_SIZE (4)
+    0x95, 0x01,			//     REPORT_COUNT (1)
+    0x81, 0x02,			//     INPUT (Data,Var,Abs)
+
+	0x75, 0x04,			//     REPORT_SIZE (4)
+	0x95, 0x01,			//     REPORT_COUNT (1)
+	0x81, 0x01,			//     INPUT (Cnst,Ary,Abs)
+
+	0x05, 0x01,			//     USAGE_PAGE (Generic Desktop)
+    0x09, 0x3A,			//     USAGE (Counted Buffer)
+	0x75, 0xA8,			//     REPORT_SIZE (168)
+    0x95, 0x01,			//     REPORT_COUNT (1)
+    0x81, 0x02,			//     INPUT (Data,Var,Abs)
+	0xc0,				//   END_COLLECTION
+
+	0xa1, 0x02,			//   COLLECTION (Logical)
+	0x85, 0x02,			//     REPORT_ID (2)
+	0x05, 0x00,			//     USAGE_PAGE (Not Defined)
+    0x15, 0x00,			//     LOGICAL_MINIMUM (0)
+    0x26, 0xff, 0x00,	//     LOGICAL_MAXIMUM (255)
+    0x35, 0x00,			//     PHYSICAL_MINIMUM (0)
+    0x46, 0xff, 0x00,	//     PHYSICAL_MAXIMUM (255)
+    0x75, 0x08,			//     REPORT_SIZE (8)
+    0x95, 0x02,			//     REPORT_COUNT (2)
+    0x09, 0x00,			//     USAGE (Undefined)
+    0x09, 0x01,			//     USAGE (Undefined)
+    0x91, 0x02,			//     OUTPUT (Data,Var,Abs)
+	0xc0,				//   END_COLLECTION
+
+	0xa1, 0x02,			//   COLLECTION (Logical)
+	0x85, 0x03,			//     REPORT_ID (3)
+	0x15, 0x00,			//     LOGICAL_MINIMUM (0)
+    0x25, 0xff,			//     LOGICAL_MAXIMUM (-1)
+    0x35, 0x00,			//     PHYSICAL_MINIMUM (0)
+    0x45, 0xff,			//     PHYSICAL_MAXIMUM (-1)
+    0x75, 0x20,			//     REPORT_SIZE (32)
+    0x95, 0x01,			//     REPORT_COUNT (1)
+    0x05, 0x00,			//     USAGE_PAGE (Not Defined)
+    0x09, 0x00,			//     USAGE (Undefined)
+    0xb1, 0x02,			//     FEATURE (Data,Var,Abs)
+	0xc0,				//   END_COLLECTION
+	0xa1, 0x02,			//   COLLECTION (Logical)
+	0x85, 0x04,			//     REPORT_ID (4)
+	0x15, 0x00,			//     LOGICAL_MINIMUM (0)
+    0x25, 0xff,			//     LOGICAL_MAXIMUM (-1)
+    0x35, 0x00,			//     PHYSICAL_MINIMUM (0)
+    0x45, 0xff,			//     PHYSICAL_MAXIMUM (-1)
+    0x75, 0x20,			//     REPORT_SIZE (56)
+    0x95, 0x01,			//     REPORT_COUNT (1)
+    0x05, 0x00,			//     USAGE_PAGE (Not Defined)
+    0x09, 0x00,			//     USAGE (Undefined)
+    0xb1, 0x02,			//     FEATURE (Data,Var,Abs)
+	0xc0,				//   END_COLLECTION
+    0xc0,				// END_COLLECTION
+
+ */

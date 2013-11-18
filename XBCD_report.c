@@ -94,9 +94,10 @@ Byte   : Bit 7   6   5   4   3   2   1   0 | 7   6   5   4   3   2   1   0
 [34-35]:   |                         Left-Stick Y                          |
 [36-37]:   |                         Right-Stick X                         |
 [38-39]:   |                         Right-Stick Y                         |
-
-[40,41,42] : keyboard
-
+[40] report id mouse 5
+[41-44] buttons/dir
+[45] report id keyboard 6
+[46-58] keys
 Output
 -------
 
@@ -283,7 +284,14 @@ UCHAR RD3[]=
     0xb1, 0x02,			//     FEATURE (Data,Var,Abs)
 	0xc0,				//   END_COLLECTION
     0xc0,				// END_COLLECTION
-
+	// mouse and keyboard stuff
+	// +1 report id
+	// +1 buttons
+	// +3 dir
+	// +1 report ID
+	// +3 leds etc
+	// +10 keys
+	// 19 total
 	0x05, 0x01,         //  Usage Page (Desktop),
 	0x09, 0x02,         //  Usage (Mouse),
 	0xA1, 0x01,         //  Collection (Application),

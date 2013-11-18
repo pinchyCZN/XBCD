@@ -889,8 +889,13 @@ NTSTATUS XBCDReadData(PDEVICE_OBJECT pFdo, PIRP pIrp)
 		OutData[20], OutData[21], OutData[22], OutData[23], OutData[24], OutData[25], OutData[26],
 		OutData[27], OutData[28], OutData[29], OutData[30], OutData[31], OutData[32], OutData[33],
 		OutData[34], OutData[35], OutData[36], OutData[37], OutData[38], OutData[39]));
-	KdPrint(("XXXXXXXXXXX"));
-	if(sizeof(OutData)>40){
+	if(sizeof(OutData)>=40){
+		KdPrint(("*** 40"));
+		OutData[40]=5;
+		if(sizeof(OutData)>=58){
+			KdPrint(("*** 45 **"));
+			OutData[45]=6;
+		}
 		//OutData[40]='a';
 		//OutData[41]='b';
 		//OutData[42]='c';

@@ -91,18 +91,21 @@ NTSTATUS XBCDDispatchIntDevice(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 					break;
 				}
 				
+
 				RtlZeroMemory(pHidDescriptor, sizeof(HID_DESCRIPTOR));
 				
 				pHidDescriptor->bLength = sizeof(HID_DESCRIPTOR);
 				pHidDescriptor->bDescriptorType = HID_HID_DESCRIPTOR_TYPE;
 				pHidDescriptor->bcdHID = HID_REVISION;
 				pHidDescriptor->bCountry = 0;
-				pHidDescriptor->bNumDescriptors = 1;
+				pHidDescriptor->bNumDescriptors = 2;
 				pHidDescriptor->DescriptorList[0].bReportType = HID_REPORT_DESCRIPTOR_TYPE;
 				RepDescSize = GetRepDesc(pDevExt, NULL);
+				RepDescSize += GetRepDesc2(pDevExt, NULL);
 				pHidDescriptor->DescriptorList[0].wReportLength = RepDescSize;
 				
 				pIrp->IoStatus.Information = sizeof(HID_DESCRIPTOR);
+				KdPrint(("IOCTL_HID_GET_DEVICE_DESCRIPTOR - Size of buffer = %d", RepDescSize));
 				KdPrint(("XBCDDispatchIntDevice - Sent Device Descriptor"));
 
 				break;
@@ -116,6 +119,9 @@ NTSTATUS XBCDDispatchIntDevice(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 				KdPrint(("XBCDDispatchIntDevice - sending report descriptor"));
 
 				iSize = GetRepDesc(pDevExt, NULL);
+				iSize += GetRepDesc2(pDevExt, NULL);
+
+				KdPrint(("IOCTL_HID_GET_REPORT_DESCRIPTOR - Size of buffer = %d", stack->Parameters.DeviceIoControl.OutputBufferLength));
 
 				if(stack->Parameters.DeviceIoControl.OutputBufferLength < iSize)
 				{
@@ -125,6 +131,7 @@ NTSTATUS XBCDDispatchIntDevice(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 				}
 				
 				iSize = GetRepDesc(pDevExt, pBuffer);
+				iSize += GetRepDesc2(pDevExt, pBuffer+iSize);
 				
 				pIrp->IoStatus.Information = iSize;
 				

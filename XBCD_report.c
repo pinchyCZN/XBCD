@@ -284,6 +284,9 @@ UCHAR RD3[]=
     0xb1, 0x02,			//     FEATURE (Data,Var,Abs)
 	0xc0,				//   END_COLLECTION
     0xc0,				// END_COLLECTION
+};
+UCHAR mousekey[]=
+{
 	// mouse and keyboard stuff
 	// +1 report id
 	// +1 buttons
@@ -355,6 +358,17 @@ UCHAR RD3[]=
 	0xC0,               //  End Collection,
 };
 
+USHORT GetRepDesc2(PDEVICE_EXTENSION pDevExt, PUCHAR Buffer)
+{
+	USHORT size;
+	if(!Buffer)
+		size=sizeof(mousekey);
+	else{
+		RtlCopyMemory(&Buffer[0], mousekey, sizeof(mousekey));
+		size = sizeof(mousekey);
+	}
+	return size;
+}
 
 USHORT GetRepDesc(PDEVICE_EXTENSION pDevExt, PUCHAR Buffer)
 {

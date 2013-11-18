@@ -103,7 +103,8 @@
 /*!
 Defines for the output buffer length and data locations
 */
-#define OUT_BUFFER_LEN (40+19)
+#define OUT_BUFFER_LEN (40)
+#define OUT_BUFFER_LEN2 (19)
 
 /*! The number of buttons on the output (i.e. Windows) side */
 #define NR_OUT_BUTTONS 24
@@ -306,6 +307,7 @@ VOID timerDPCProc(IN PKDPC Dpc, IN PVOID DeferredContext, IN PVOID SystemArgumen
 
 //XBCD_report.c
 USHORT GetRepDesc(PDEVICE_EXTENSION pDevExt, PUCHAR Buffer);
+USHORT GetRepDesc2(PDEVICE_EXTENSION pDevExt, PUCHAR Buffer);
 
 //XBCD_usb.c
 

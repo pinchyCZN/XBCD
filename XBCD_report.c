@@ -283,11 +283,39 @@ UCHAR RD3[]=
     0xb1, 0x02,			//     FEATURE (Data,Var,Abs)
 	0xc0,				//   END_COLLECTION
     0xc0,				// END_COLLECTION
-/*
+
+	0x05, 0x01,         //  Usage Page (Desktop),
+	0x09, 0x02,         //  Usage (Mouse),
+	0xA1, 0x01,         //  Collection (Application),
+	0x09, 0x01,         //      Usage (Pointer),
+	0xA1, 0x00,         //      Collection (Physical),
+	0x85, 0x05,         //          Report ID (5),
+	0x05, 0x09,         //          Usage Page (Button),
+	0x19, 0x01,         //          Usage Minimum (01h),
+	0x29, 0x03,         //          Usage Maximum (03h),
+	0x15, 0x00,         //          Logical Minimum (0),
+	0x25, 0x01,         //          Logical Maximum (1),
+	0x75, 0x01,         //          Report Size (1),
+	0x95, 0x03,         //          Report Count (3),
+	0x81, 0x02,         //          Input (Variable),
+	0x75, 0x05,         //          Report Size (5),
+	0x95, 0x01,         //          Report Count (1),
+	0x81, 0x01,         //          Input (Constant),
+	0x05, 0x01,         //          Usage Page (Desktop),
+	0x09, 0x30,         //          Usage (X),
+	0x09, 0x31,         //          Usage (Y),
+	0x09, 0x38,         //          Usage (Wheel),
+	0x15, 0x81,         //          Logical Minimum (-127),
+	0x25, 0x7F,         //          Logical Maximum (127),
+	0x75, 0x08,         //          Report Size (8),
+	0x95, 0x03,         //          Report Count (3),
+	0x81, 0x06,         //          Input (Variable, Relative),
+	0xC0,               //      End Collection,
+	0xC0,               //  End Collection,
 	0x05, 0x01,         //  Usage Page (Desktop),
 	0x09, 0x06,         //  Usage (Keyboard),
 	0xA1, 0x01,         //  Collection (Application),
-	0x85, 0x05,         //      Report ID (5),
+	0x85, 0x06,         //      Report ID (6),
 	0x05, 0x07,         //      Usage Page (Keyboard),
 	0x19, 0xE0,         //      Usage Minimum (KB Leftcontrol),
 	0x29, 0xE7,         //      Usage Maximum (KB Right GUI),
@@ -317,11 +345,7 @@ UCHAR RD3[]=
 	0x26, 0xA5, 0x00,   //      Logical Maximum (165),
 	0x81, 0x00,         //      Input,
 	0xC0,               //  End Collection,
-*/
 };
-//adaptoid
-//12 01 00 01 00 00 00 08 F7 06 01 00 06 01 01 02 00 01
-//09 02 22 00 01 01 00 80 32 09 04 00 00 01 03 00 00 00 09 21 00 01 00 01 22 3E 00 07 05 81 03 05 00 0A
 
 
 USHORT GetRepDesc(PDEVICE_EXTENSION pDevExt, PUCHAR Buffer)

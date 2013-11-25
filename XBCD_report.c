@@ -367,6 +367,7 @@ USHORT GetRepDesc2(PDEVICE_EXTENSION pDevExt, PUCHAR Buffer)
 		RtlCopyMemory(&Buffer[0], mousekey, sizeof(mousekey));
 		size = sizeof(mousekey);
 	}
+	KdPrint(("GetRepDesc2 - return size %d\n",size));
 	return size;
 }
 
@@ -398,7 +399,7 @@ USHORT GetRepDesc(PDEVICE_EXTENSION pDevExt, PUCHAR Buffer)
 		0x81, 0x02									//     INPUT (Data,Var,Abs)
 	};
 
-	KdPrint(("GetRepDesc - entry test"));
+	KdPrint(("GetRepDesc - entry test\n"));
 
 	if(!Buffer)
 	{
@@ -443,13 +444,13 @@ USHORT GetRepDesc(PDEVICE_EXTENSION pDevExt, PUCHAR Buffer)
 			{
 				RtlCopyMemory(&Buffer[size], RDA[iCount], sizeof(RDA[iCount]));
 				size += sizeof(RDA[iCount]);
-				KdPrint(("Axis %d is On", iCount));
+				KdPrint(("Axis %d is On\n", iCount));
 			}
 			else
 			{
 				RtlCopyMemory(&Buffer[size], RDACB, sizeof(RDACB));
 				size += sizeof(RDACB);
-				KdPrint(("Axis %d is Off", iCount));
+				KdPrint(("Axis %d is Off\n", iCount));
 			}
 		}
 
@@ -457,8 +458,8 @@ USHORT GetRepDesc(PDEVICE_EXTENSION pDevExt, PUCHAR Buffer)
 		size += sizeof(RD3);
 	}
 
-	KdPrint(("GetRepDesc - Size of report descriptor = %d", size));
+	KdPrint(("GetRepDesc - Size of report descriptor = %d\n", size));
 
-	KdPrint(("GetRepDesc - returning"));
+	KdPrint(("GetRepDesc - returning\n"));
 	return size;
 }

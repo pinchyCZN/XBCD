@@ -55,16 +55,16 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT pDriverObject, IN PUNICODE_STRING pRegist
 
 	if (NT_SUCCESS(status))
 	{
-		KdPrint(("Minidriver Registration Worked"));
+		KdPrint(("Minidriver Registration Worked\n"));
 		/*RegistryPath.Buffer = (PWSTR) ExAllocatePool(PagedPool, pRegistryPath->Length + sizeof(WCHAR));
 		RegistryPath.MaximumLength = pRegistryPath->Length + sizeof(WCHAR);
 		RtlCopyUnicodeString(&RegistryPath, pRegistryPath);
 		RegistryPath.Buffer[pRegistryPath->Length/sizeof(WCHAR)] = 0;*/
-		KdPrint(("%ws", pRegistryPath->Buffer));
+		KdPrint(("%ws\n", pRegistryPath->Buffer));
 	}
 	else
 	{
-		KdPrint(("Minidriver Registration Failed"));
+		KdPrint(("Minidriver Registration Failed\n"));
 	}
     return status;
 }
@@ -77,7 +77,7 @@ NTSTATUS XBCDCreate(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
     pIrp->IoStatus.Information = 0;
     IoCompleteRequest(pIrp, IO_NO_INCREMENT);
 
-	KdPrint(("XBCDCreate"));
+	KdPrint(("XBCDCreate\n"));
 
     return status;
 }
@@ -88,7 +88,7 @@ NTSTATUS XBCDClose(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
     pIrp->IoStatus.Information = 0;
     IoCompleteRequest(pIrp, IO_NO_INCREMENT);
 
-	KdPrint(("XBCDClose"));
+	KdPrint(("XBCDClose\n"));
 
     return STATUS_SUCCESS;
 }
@@ -100,7 +100,7 @@ NTSTATUS XBCDAddDevice(IN PDRIVER_OBJECT pDriverObject, IN PDEVICE_OBJECT pFdo)
     NTSTATUS status = STATUS_SUCCESS;
     PDEVICE_EXTENSION pDevExt = GET_MINIDRIVER_DEVICE_EXTENSION(pFdo);
 
-	KdPrint(("XBCDAddDevice - Entry"));
+	KdPrint(("XBCDAddDevice - Entry\n"));
 
 	PAGED_CODE();
 
@@ -136,7 +136,7 @@ NTSTATUS XBCDAddDevice(IN PDRIVER_OBJECT pDriverObject, IN PDEVICE_OBJECT pFdo)
 		}
 		else
 		{
-			KdPrint(("%ws", pSymbolicLink->Buffer));
+			KdPrint(("%ws\n", pSymbolicLink->Buffer));
 			RtlFreeUnicodeString(pSymbolicLink);
 		}
 	}
@@ -148,7 +148,7 @@ NTSTATUS XBCDAddDevice(IN PDRIVER_OBJECT pDriverObject, IN PDEVICE_OBJECT pFdo)
 
 VOID XBCDUnload(IN PDRIVER_OBJECT pDriverObject)
 {
-	KdPrint(("XBCDUnload"));
+	KdPrint(("XBCDUnload\n"));
 	/*if (RegistryPath.Buffer != NULL)
 	{
 		RtlFreeUnicodeString(&RegistryPath);
@@ -192,7 +192,7 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 	{
 	case IRP_MN_START_DEVICE:
 		{
-			KdPrint(("XBCDDispatchPnp - IRP_MN_START_DEVICE entry"));
+			KdPrint(("XBCDDispatchPnp - IRP_MN_START_DEVICE entry\n"));
 			
 			KeInitializeEvent(&event, NotificationEvent, FALSE);
 			
@@ -216,13 +216,13 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 
 			ReleaseRemoveLock(&pDevExt->RemoveLock, pIrp);
 			
-			KdPrint(("XBCDDispatchPnp - IRP_MN_START_DEVICE exit"));
+			KdPrint(("XBCDDispatchPnp - IRP_MN_START_DEVICE exit\n"));
 			
 			break;
 		}
 	case IRP_MN_REMOVE_DEVICE:
 		{
-			KdPrint(("XBCDDispatchPnp - IRP_MN_REMOVE_DEVICE entry"));
+			KdPrint(("XBCDDispatchPnp - IRP_MN_REMOVE_DEVICE entry\n"));
 			
 			pDevExt->DeviceRemoved = TRUE;
 
@@ -230,21 +230,21 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 			{
 				StopInterruptUrb(pDevExt);
 
-				KdPrint(("XBCDDispatchPnp - release and wait removelock"));
+				KdPrint(("XBCDDispatchPnp - release and wait removelock\n"));
 				ReleaseRemoveLockAndWait(&pDevExt->RemoveLock, pIrp);
 
-				KdPrint(("XBCDDispatchPnp - Stop device"));
+				KdPrint(("XBCDDispatchPnp - Stop device\n"));
 				
 				XBCDStopDevice(pFdo, pIrp);
 
-				KdPrint(("XBCDDispatchPnp - Call removedevice"));
+				KdPrint(("XBCDDispatchPnp - Call removedevice\n"));
 			
 				XBCDRemoveDevice(pFdo, pIrp);
 			}
 			
 			pIrp->IoStatus.Status = STATUS_SUCCESS;
 			
-			KdPrint(("XBCDDispatchPnp - Pass irp down"));
+			KdPrint(("XBCDDispatchPnp - Pass irp down\n"));
 			
 			IoSkipCurrentIrpStackLocation(pIrp);
 			status = IoCallDriver(pDevExt->pLowerPdo, pIrp);
@@ -256,13 +256,13 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 			
 			status = STATUS_SUCCESS;
 			
-			KdPrint(("XBCDDispatchPnp - IRP_MN_REMOVE_DEVICE exit"));
+			KdPrint(("XBCDDispatchPnp - IRP_MN_REMOVE_DEVICE exit\n"));
 
 			return status;
 		}
 	case IRP_MN_STOP_DEVICE:
 		{
-			KdPrint(("XBCDDispatchPnp - IRP_MN_STOP_DEVICE"));
+			KdPrint(("XBCDDispatchPnp - IRP_MN_STOP_DEVICE\n"));
 
 			StopInterruptUrb(pDevExt);
 
@@ -278,7 +278,7 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 		}
 	case IRP_MN_QUERY_CAPABILITIES:
 		{
-			KdPrint(("XBCDDispatchPnp - IRP_MN_QUERY_CAPABILITIES"));
+			KdPrint(("XBCDDispatchPnp - IRP_MN_QUERY_CAPABILITIES\n"));
 
 			stack->Parameters.DeviceCapabilities.Capabilities->SurpriseRemovalOK = TRUE;
 			stack->Parameters.DeviceCapabilities.Capabilities->EjectSupported = FALSE;
@@ -299,18 +299,18 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 		}
 	case IRP_MN_SURPRISE_REMOVAL:
 		{
-			KdPrint(("XBCDDispatchPnp - IRP_MN_SURPRISE_REMOVAL entry"));
+			KdPrint(("XBCDDispatchPnp - IRP_MN_SURPRISE_REMOVAL entry\n"));
 			
 			pDevExt->SurpriseRemoved = TRUE;
 
 			StopInterruptUrb(pDevExt);
 
-			KdPrint(("XBCDDispatchPnp - release and wait removelock"));
+			KdPrint(("XBCDDispatchPnp - release and wait removelock\n"));
 			ReleaseRemoveLockAndWait(&pDevExt->RemoveLock, pIrp);
 			
 			XBCDStopDevice(pFdo, pIrp);
 
-			KdPrint(("XBCDDispatchPnp - Call removedevice"));
+			KdPrint(("XBCDDispatchPnp - Call removedevice\n"));
 			
 			XBCDRemoveDevice(pFdo, pIrp);
 			
@@ -318,13 +318,13 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 			IoSkipCurrentIrpStackLocation(pIrp);
 			status = IoCallDriver(pDevExt->pLowerPdo, pIrp);
 			
-			KdPrint(("XBCDDispatchPnp - IRP_MN_SURPRISE_REMOVAL exit"));
+			KdPrint(("XBCDDispatchPnp - IRP_MN_SURPRISE_REMOVAL exit\n"));
 			
 			break;
 		}
 	default:
 		{
-			KdPrint(("XBCDDispatchPnp - Irp %d not supported", stack->MinorFunction));
+			KdPrint(("XBCDDispatchPnp - Irp %d not supported\n", stack->MinorFunction));
 			
 			IoSkipCurrentIrpStackLocation (pIrp);
 			status = IoCallDriver(pDevExt->pLowerPdo, pIrp);
@@ -431,33 +431,33 @@ NTSTATUS XBCDStartDevice(PDEVICE_OBJECT pFdo, PIRP pIrp)
 
 	if(!urb)
 	{
-		KdPrint(("XBCDStartDevice - Unable to allocate memory for URB"));
+		KdPrint(("XBCDStartDevice - Unable to allocate memory for URB\n"));
 		return STATUS_INSUFFICIENT_RESOURCES;
 	}
 
 	// Read our device descriptor. The only real purpose to this would be to find out how many
 	// configurations there are so we can read their descriptors. There's only one configuration.
 
-	KdPrint(("XBCDStartDevice - getting device descriptor"));
+	KdPrint(("XBCDStartDevice - getting device descriptor\n"));
 	UsbBuildGetDescriptorRequest(urb, sizeof(struct _URB_CONTROL_DESCRIPTOR_REQUEST), USB_DEVICE_DESCRIPTOR_TYPE,
 		0, 0, &pDevExt->dd, NULL, sizeof(pDevExt->dd), NULL);
 	status = SendAwaitUrb(pFdo, urb);
 	if(!NT_SUCCESS(status))
 	{
 		//ExFreePool(urb);
-		KdPrint(("XBCDStartDevice - Error %X trying to read device descriptor", status));
+		KdPrint(("XBCDStartDevice - Error %X trying to read device descriptor\n", status));
 		//return status;
 	}
 	else
 	{
-		KdPrint(("VendorID %X, ProductID %X, Version %X", pDevExt->dd.idVendor, pDevExt->dd.idProduct, pDevExt->dd.bcdDevice));
+		KdPrint(("VendorID %X, ProductID %X, Version %X\n", pDevExt->dd.idVendor, pDevExt->dd.idProduct, pDevExt->dd.bcdDevice));
 	}
 
 	// Read the descriptor of the first configuration. This requires two steps. The first step
 	// reads the fixed-size configuration descriptor alone. The second step reads the
 	// configuration descriptor plus all imbedded interface and endpoint descriptors.
 
-	KdPrint(("XBCDStartDevice - getting configuration descriptor"));
+	KdPrint(("XBCDStartDevice - getting configuration descriptor\n"));
 	UsbBuildGetDescriptorRequest(urb, sizeof(struct _URB_CONTROL_DESCRIPTOR_REQUEST), USB_CONFIGURATION_DESCRIPTOR_TYPE,
 		0, 0, &tcd, NULL, sizeof(tcd), NULL);
 	status = SendAwaitUrb(pFdo, urb);
@@ -465,7 +465,7 @@ NTSTATUS XBCDStartDevice(PDEVICE_OBJECT pFdo, PIRP pIrp)
 	if(!NT_SUCCESS(status))
 	{
 		ExFreePool(urb);
-		KdPrint(("XBCDStartDevice - Error %X trying to read configuration descriptor 1", status));
+		KdPrint(("XBCDStartDevice - Error %X trying to read configuration descriptor 1\n", status));
 		return status;
 	}
 
@@ -474,11 +474,11 @@ NTSTATUS XBCDStartDevice(PDEVICE_OBJECT pFdo, PIRP pIrp)
 	if(!pcd)
 	{
 		ExFreePool(urb);
-		KdPrint(("XBCDStartDevice - Unable to allocate %X bytes for configuration descriptor", size));
+		KdPrint(("XBCDStartDevice - Unable to allocate %X bytes for configuration descriptor\n", size));
 		return STATUS_INSUFFICIENT_RESOURCES;
 	}
 
-	KdPrint(("XBCDStartDevice - Getting second part of configuration descriptor"));
+	KdPrint(("XBCDStartDevice - Getting second part of configuration descriptor\n"));
 	UsbBuildGetDescriptorRequest(urb, sizeof(struct _URB_CONTROL_DESCRIPTOR_REQUEST), USB_CONFIGURATION_DESCRIPTOR_TYPE,
 		0, 0, pcd, NULL, size, NULL);
 	status = SendAwaitUrb(pFdo, urb);
@@ -487,7 +487,7 @@ NTSTATUS XBCDStartDevice(PDEVICE_OBJECT pFdo, PIRP pIrp)
 	{
 		ExFreePool(urb);
 		ExFreePool(pcd);
-		KdPrint(("XBCDStartDevice - Error %X trying to read configuration descriptor 2", status));
+		KdPrint(("XBCDStartDevice - Error %X trying to read configuration descriptor 2\n", status));
 		return status;
 	}
 
@@ -500,13 +500,13 @@ NTSTATUS XBCDStartDevice(PDEVICE_OBJECT pFdo, PIRP pIrp)
 	interfaces[1].InterfaceDescriptor = NULL;
 	interfaces[1].Interface = NULL;
 
-	KdPrint(("XBCDStartDevice - selecting the configuration"));
+	KdPrint(("XBCDStartDevice - selecting the configuration\n"));
 	selurb = USBD_CreateConfigurationRequestEx(pcd, interfaces);
 	if(!selurb)
 	{
 		ExFreePool(urb);
 		ExFreePool(pcd);
-		KdPrint(("XBCDStartDevice - Unable to create configuration request"));
+		KdPrint(("XBCDStartDevice - Unable to create configuration request\n"));
 		return STATUS_INSUFFICIENT_RESOURCES;
 	}
 
@@ -516,7 +516,7 @@ NTSTATUS XBCDStartDevice(PDEVICE_OBJECT pFdo, PIRP pIrp)
 		ExFreePool(urb);
 		ExFreePool(pcd);
 		ExFreePool(selurb);
-		KdPrint(("XBCDStartDevice - NumberOfPipes %d does not match bNumEndpoints %d",pii->NumberOfPipes, pid->bNumEndpoints));
+		KdPrint(("XBCDStartDevice - NumberOfPipes %d does not match bNumEndpoints %d\n",pii->NumberOfPipes, pid->bNumEndpoints));
 		return STATUS_DEVICE_CONFIGURATION_ERROR;
 	}
 
@@ -526,7 +526,7 @@ NTSTATUS XBCDStartDevice(PDEVICE_OBJECT pFdo, PIRP pIrp)
 			{
 				pDevExt->bHasMotors = FALSE;
 
-				KdPrint(("Pipe 0 : MaxTransfer %d, MaxPckSize %d, PipeType %d, Interval %d, Handle %d Address %d", pii->Pipes[0].MaximumTransferSize, pii->Pipes[0].MaximumPacketSize, pii->Pipes[0].PipeType, pii->Pipes[0].Interval, pii->Pipes[0].PipeHandle, pii->Pipes[0].EndpointAddress));
+				KdPrint(("Pipe 0 : MaxTransfer %d, MaxPckSize %d, PipeType %d, Interval %d, Handle %d Address %d\n", pii->Pipes[0].MaximumTransferSize, pii->Pipes[0].MaximumPacketSize, pii->Pipes[0].PipeType, pii->Pipes[0].Interval, pii->Pipes[0].PipeHandle, pii->Pipes[0].EndpointAddress));
 
 				//pii->Pipes[0].MaximumTransferSize = 0x0020;
 				//pii->Pipes[0].MaximumPacketSize = 0x0020;
@@ -539,14 +539,14 @@ NTSTATUS XBCDStartDevice(PDEVICE_OBJECT pFdo, PIRP pIrp)
 			{
 				pDevExt->bHasMotors = TRUE;
 
-				KdPrint(("Pipe 0 : MaxTransfer %d, MaxPckSize %d, PipeType %d, Interval %d, Handle %d Address %d", pii->Pipes[0].MaximumTransferSize, pii->Pipes[0].MaximumPacketSize, pii->Pipes[0].PipeType, pii->Pipes[0].Interval, pii->Pipes[0].PipeHandle, pii->Pipes[0].EndpointAddress));
+				KdPrint(("Pipe 0 : MaxTransfer %d, MaxPckSize %d, PipeType %d, Interval %d, Handle %d Address %d\n", pii->Pipes[0].MaximumTransferSize, pii->Pipes[0].MaximumPacketSize, pii->Pipes[0].PipeType, pii->Pipes[0].Interval, pii->Pipes[0].PipeHandle, pii->Pipes[0].EndpointAddress));
 
 				//pii->Pipes[0].MaximumTransferSize = 0x0020;
 				//pii->Pipes[0].MaximumPacketSize = 0x0020;
 				//pii->Pipes[0].PipeType = UsbdPipeTypeInterrupt;
 				//pii->Pipes[0].Interval = 0x04;
 
-				KdPrint(("Pipe 1 : MaxTransfer %d, MaxPckSize %d, PipeType %d, Interval %d, Handle %d Address %d", pii->Pipes[1].MaximumTransferSize, pii->Pipes[1].MaximumPacketSize, pii->Pipes[1].PipeType, pii->Pipes[1].Interval, pii->Pipes[1].PipeHandle, pii->Pipes[1].EndpointAddress));
+				KdPrint(("Pipe 1 : MaxTransfer %d, MaxPckSize %d, PipeType %d, Interval %d, Handle %d Address %d\n", pii->Pipes[1].MaximumTransferSize, pii->Pipes[1].MaximumPacketSize, pii->Pipes[1].PipeType, pii->Pipes[1].Interval, pii->Pipes[1].PipeHandle, pii->Pipes[1].EndpointAddress));
 
 				//pii->Pipes[1].MaximumTransferSize = 0x0006;
 				//pii->Pipes[1].MaximumPacketSize = 0x0020;
@@ -559,7 +559,7 @@ NTSTATUS XBCDStartDevice(PDEVICE_OBJECT pFdo, PIRP pIrp)
 				ExFreePool(urb);
 				ExFreePool(pcd);
 				ExFreePool(selurb);
-				KdPrint(("XBCDStartDevice - %d is the wrong number of endpoints", pid->bNumEndpoints));
+				KdPrint(("XBCDStartDevice - %d is the wrong number of endpoints\n", pid->bNumEndpoints));
 				return STATUS_DEVICE_CONFIGURATION_ERROR;
 			}
 	}
@@ -571,7 +571,7 @@ NTSTATUS XBCDStartDevice(PDEVICE_OBJECT pFdo, PIRP pIrp)
 		ExFreePool(urb);
 		ExFreePool(pcd);
 		ExFreePool(selurb);
-		KdPrint(("XBCDStartDevice - Error %X trying to select configuration", status));
+		KdPrint(("XBCDStartDevice - Error %X trying to select configuration\n", status));
 		return status;
 	}
 
@@ -604,7 +604,7 @@ NTSTATUS XBCDStartDevice(PDEVICE_OBJECT pFdo, PIRP pIrp)
 
 	if(!NT_SUCCESS(CreateInterruptUrb(pFdo)))
 	{
-		KdPrint(("XBCDStartDevice - Could not create interrupt urb"));
+		KdPrint(("XBCDStartDevice - Could not create interrupt urb\n"));
 	}
 
 	KeInitializeDpc(&pDevExt->timeDPC, timerDPCProc, pDevExt);
@@ -664,7 +664,7 @@ VOID XBCDRemoveDevice(PDEVICE_OBJECT pFdo, PIRP pIrp)
 
 	pDevExt->PowerDown = TRUE;
 
-	KdPrint(("XBCDRemoveDevice - Trying to delete the interrupt urb"));
+	KdPrint(("XBCDRemoveDevice - Trying to delete the interrupt urb\n"));
 	DeleteInterruptUrb(pFdo);
 
 	return;
@@ -677,14 +677,14 @@ VOID XBCDStopDevice(PDEVICE_OBJECT pFdo, PIRP pIrp)
 	PURB urb;
 
 	// Cancel the URB in case it's currently active
-	//KdPrint(("XBCDStopDevice - About to stop the interrupt urb"));
+	//KdPrint(("XBCDStopDevice - About to stop the interrupt urb\n"));
 	//StopInterruptUrb(pDevExt);
-	//KdPrint(("XBCDStopDevice - Stopped the interrupt urb"));
+	//KdPrint(("XBCDStopDevice - Stopped the interrupt urb\n"));
 
 	//pDevExt->timerEnabled = FALSE;
 	//KeCancelTimer(&pDevExt->timer);
 
-	KdPrint(("XBCDStopDevice - freeing pcd"));
+	KdPrint(("XBCDStopDevice - freeing pcd\n"));
 	if(pDevExt->pcd)
 		ExFreePool(pDevExt->pcd);
 	pDevExt->pcd = NULL;
@@ -697,23 +697,23 @@ VOID XBCDStopDevice(PDEVICE_OBJECT pFdo, PIRP pIrp)
 
 		if(!urb)
 		{
-			KdPrint(("XBCDStopDevice - Could not allocate memory for URB"));
+			KdPrint(("XBCDStopDevice - Could not allocate memory for URB\n"));
 			return;
 		}
 
-		KdPrint(("XBCDStopDevice - Starting to deconfigure device"));
+		KdPrint(("XBCDStopDevice - Starting to deconfigure device\n"));
 		UsbBuildSelectConfigurationRequest(urb, sizeof(struct _URB_SELECT_CONFIGURATION), NULL);
 		status = SendAwaitUrb(pFdo, urb);
-		KdPrint(("XBCDStopDevice - Deconfiguring device"));
+		KdPrint(("XBCDStopDevice - Deconfiguring device\n"));
 		if(!NT_SUCCESS(status))
 		{
-			KdPrint(("XBCDStopDevice - Error %X trying to deconfigure device", status));
+			KdPrint(("XBCDStopDevice - Error %X trying to deconfigure device\n", status));
 		}
 
 		ExFreePool(urb);
 	}
 	
-	KdPrint(("XBCDStopDevice - returning"));
+	KdPrint(("XBCDStopDevice - returning\n"));
 	return;
 }
 
@@ -726,21 +726,21 @@ NTSTATUS XBCDDispatchPower(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
     /*switch (stack->MinorFunction)
     {
     case IRP_MN_WAIT_WAKE:
-		KdPrint(("XBCDDispatchPower - IRP_MN_WAIT_WAKE"));
+		KdPrint(("XBCDDispatchPower - IRP_MN_WAIT_WAKE\n"));
         break;
     case IRP_MN_POWER_SEQUENCE:
-		KdPrint(("XBCDDispatchPower - IRP_MN_POWER_SEQUENCE"));
+		KdPrint(("XBCDDispatchPower - IRP_MN_POWER_SEQUENCE\n"));
         break;
     case IRP_MN_SET_POWER:
-		KdPrint(("XBCDDispatchPower - IRP_MN_SET_POWER"));
+		KdPrint(("XBCDDispatchPower - IRP_MN_SET_POWER\n"));
         break;
     case IRP_MN_QUERY_POWER:
-		KdPrint(("XBCDDispatchPower - IRP_MN_QUERY_POWER"));
+		KdPrint(("XBCDDispatchPower - IRP_MN_QUERY_POWER\n"));
         break;
     }*/
 	IoSkipCurrentIrpStackLocation(pIrp);
 	PoStartNextPowerIrp(pIrp);
-	KdPrint(("XBCDDispatchPower"));
+	KdPrint(("XBCDDispatchPower\n"));
     return PoCallDriver(pDevExt->pLowerPdo, pIrp);
 }
 
@@ -771,13 +771,13 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 	*/
 	WCHAR LayoutNames[8][11] =
 	{
-		L"MapMatrix0",
-		L"MapMatrix1",
-		L"MapMatrix2",
-		L"MapMatrix3",
-		L"MapMatrix4",
-		L"MapMatrix5",
-		L"MapMatrix6",
+		L"MapMatrix0\n",
+		L"MapMatrix1\n",
+		L"MapMatrix2\n",
+		L"MapMatrix3\n",
+		L"MapMatrix4\n",
+		L"MapMatrix5\n",
+		L"MapMatrix6\n",
 		L"MapMatrix7"
 	};
 
@@ -792,12 +792,12 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 									 PLUGPLAY_REGKEY_DEVICE, KEY_ALL_ACCESS, &hKey);
 	if(NT_SUCCESS(ntstatus))
 	{
-		KdPrint(("XBCDReadConfig: IoOpenDeviceRegistryKey"));
+		KdPrint(("XBCDReadConfig: IoOpenDeviceRegistryKey\n"));
 
-		ReceivedDataLen = ReadRegistry(hKey, L"DevType", TempRegData, sizeof(TempRegData));
+		ReceivedDataLen = ReadRegistry(hKey, L"DevType\n", TempRegData, sizeof(TempRegData));
 		if(ReceivedDataLen != 4)
 		{
-			KdPrint(("XBCDReadConfig: DevType not found in registry. Using default."));
+			KdPrint(("XBCDReadConfig: DevType not found in registry. Using default.\n"));
 			pDevExt->DevUsage = HID_USAGE_GAMEPAD;
 		}
 		else
@@ -812,7 +812,7 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 		/*
 		Get overall number of layouts from registry.
 		*/
-		ReceivedDataLen = ReadRegistry(hKey, L"NrOfLayouts", TempRegData, sizeof(TempRegData));
+		ReceivedDataLen = ReadRegistry(hKey, L"NrOfLayouts\n", TempRegData, sizeof(TempRegData));
 		pDevExt->NrOfLayouts = (int)TempRegData[0];
 		if((ReceivedDataLen != 4) || (pDevExt->NrOfLayouts > MAX_NR_LAYOUTS))
 			pDevExt->NrOfLayouts = 1;
@@ -821,7 +821,7 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 		if(pDevExt->LayoutNr >= pDevExt->NrOfLayouts)
 			pDevExt->LayoutNr = 0;
 
-		KdPrint(("XBCDReadConfig: NrOfLayouts %i, LayoutNr %i",
+		KdPrint(("XBCDReadConfig: NrOfLayouts %i, LayoutNr %i\n",
 				pDevExt->NrOfLayouts, pDevExt->LayoutNr));
 
 		for(index=0; index != pDevExt->NrOfLayouts; index++)
@@ -830,7 +830,7 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 			ReceivedDataLen = ReadRegistry(hKey, LayoutNames[index], TempRegData, sizeof(TempRegData));
 			if(ReceivedDataLen != MAP_MATRIX_SIZE)
 			{
-				KdPrint(("XBCDReadConfig: MapMatrix%i not found in registry. Using default layout.", index));
+				KdPrint(("XBCDReadConfig: MapMatrix%i not found in registry. Using default layout.\n", index));
 				setDefaultMapMatrix(pDevExt->MapMatrix[index], pDevExt->isWin9x);
 			}
 
@@ -843,7 +843,7 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 				for(index2=0; index2 != MAP_MATRIX_SIZE; index2++)
 				{
 					pDevExt->MapMatrix[index][index2] = (int)(TempRegData[index2]>NR_WINCONTROLS ? 0 : TempRegData[index2]);
-					KdPrint(("XBCDReadConfig: MapMatrix[%i]=%i", index2, pDevExt->MapMatrix[index][index2]));
+					KdPrint(("XBCDReadConfig: MapMatrix[%i]=%i\n", index2, pDevExt->MapMatrix[index][index2]));
 				}
 			}
 		}
@@ -853,28 +853,28 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 		The entire 8 Bits are used, so no range check is necessary.
 		*/
 		//Modified registry names so there's no conflict with the old driver names
-		ReceivedDataLen = ReadRegistry(hKey, L"ALFactor", TempRegData, sizeof(TempRegData));
+		ReceivedDataLen = ReadRegistry(hKey, L"ALFactor\n", TempRegData, sizeof(TempRegData));
 		if(ReceivedDataLen != 4)
 		{
-			KdPrint(("XBCDReadConfig: ALFactor not found in registry. Using default."));
+			KdPrint(("XBCDReadConfig: ALFactor not found in registry. Using default.\n"));
 			pDevExt->LaFactor=255;
 		}
 		else
 			pDevExt->LaFactor=TempRegData[0];
 
-		ReceivedDataLen = ReadRegistry(hKey, L"ARFactor", TempRegData, sizeof(TempRegData));
+		ReceivedDataLen = ReadRegistry(hKey, L"ARFactor\n", TempRegData, sizeof(TempRegData));
 		if(ReceivedDataLen != 4)
 		{
-			KdPrint(("XBCDReadConfig: ARFactor not found in registry. Using default."));
+			KdPrint(("XBCDReadConfig: ARFactor not found in registry. Using default.\n"));
 			pDevExt->RaFactor=255;
 		}
 		else
 			pDevExt->RaFactor = TempRegData[0];
 
-		ReceivedDataLen = ReadRegistry(hKey, L"AxesOn", TempRegData, sizeof(TempRegData));
+		ReceivedDataLen = ReadRegistry(hKey, L"AxesOn\n", TempRegData, sizeof(TempRegData));
 		if(ReceivedDataLen != 4)
 		{
-			KdPrint(("XBCDReadConfig: AxesOn not found in registry. Using default."));
+			KdPrint(("XBCDReadConfig: AxesOn not found in registry. Using default.\n"));
 			if(pDevExt->isWin9x)
 				pDevExt->AxesOn = 27; //no RY axis
 			else
@@ -890,10 +890,10 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 
 		//----------------------------------------------------------------------------
 
-		ReceivedDataLen = ReadRegistry(hKey, L"BThreshold", TempRegData, sizeof(TempRegData));
+		ReceivedDataLen = ReadRegistry(hKey, L"BThreshold\n", TempRegData, sizeof(TempRegData));
 		if(ReceivedDataLen != 4)
 		{
-			KdPrint(("XBCDReadConfig: BThreshold not found in registry. Using default."));
+			KdPrint(("XBCDReadConfig: BThreshold not found in registry. Using default.\n"));
 			pDevExt->BThreshold = MAX_VALUE * 10/255;
 		}
 		else
@@ -903,10 +903,10 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 				pDevExt->BThreshold = MAX_VALUE * 10/255;
 		}
 
-		ReceivedDataLen = ReadRegistry(hKey, L"TThreshold", TempRegData, sizeof(TempRegData));
+		ReceivedDataLen = ReadRegistry(hKey, L"TThreshold\n", TempRegData, sizeof(TempRegData));
 		if(ReceivedDataLen != 4)
 		{
-			KdPrint(("XBCDReadConfig: TThreshold not found in registry. Using default."));
+			KdPrint(("XBCDReadConfig: TThreshold not found in registry. Using default.\n"));
 			pDevExt->TThreshold = MAX_VALUE * 10/255;
 		}
 		else
@@ -916,10 +916,10 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 				pDevExt->TThreshold = MAX_VALUE * 10/255;
 		}
 
-		ReceivedDataLen = ReadRegistry(hKey, L"AThreshold", TempRegData, sizeof(TempRegData));
+		ReceivedDataLen = ReadRegistry(hKey, L"AThreshold\n", TempRegData, sizeof(TempRegData));
 		if(ReceivedDataLen != 4)
 		{
-			KdPrint(("XBCDReadConfig: AThreshold not found in registry. Using default."));
+			KdPrint(("XBCDReadConfig: AThreshold not found in registry. Using default.\n"));
 			pDevExt->AThreshold = MAX_VALUE * 100/255;
 		}
 		else
@@ -929,10 +929,10 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 				pDevExt->AThreshold = MAX_VALUE * 100/255;
 		}
 
-		ReceivedDataLen = ReadRegistry(hKey, L"LStickDZ", TempRegData, sizeof(TempRegData));
+		ReceivedDataLen = ReadRegistry(hKey, L"LStickDZ\n", TempRegData, sizeof(TempRegData));
 		if(ReceivedDataLen != 4)
 		{
-			KdPrint(("XBCDReadConfig: LStickDZ not found in registry. Using default."));
+			KdPrint(("XBCDReadConfig: LStickDZ not found in registry. Using default.\n"));
 			pDevExt->LStickDZ = 0;
 		}
 		else
@@ -942,10 +942,10 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 				pDevExt->LStickDZ = MAX_VALUE;
 		}
 
-		ReceivedDataLen = ReadRegistry(hKey, L"RStickDZ", TempRegData, sizeof(TempRegData));
+		ReceivedDataLen = ReadRegistry(hKey, L"RStickDZ\n", TempRegData, sizeof(TempRegData));
 		if(ReceivedDataLen != 4)
 		{
-			KdPrint(("XBCDReadConfig: RStickDZ not found in registry. Using default."));
+			KdPrint(("XBCDReadConfig: RStickDZ not found in registry. Using default.\n"));
 			pDevExt->RStickDZ = 0;
 		}
 		else
@@ -955,10 +955,10 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 				pDevExt->RStickDZ = MAX_VALUE;
 		}
 
-		ReceivedDataLen = ReadRegistry(hKey, L"AxesScale", TempRegData, sizeof(TempRegData));
+		ReceivedDataLen = ReadRegistry(hKey, L"AxesScale\n", TempRegData, sizeof(TempRegData));
 		if(ReceivedDataLen != NR_OUT_AXES)
 		{
-			KdPrint(("XBCDReadConfig: AxesScale not found in registry. Using default."));
+			KdPrint(("XBCDReadConfig: AxesScale not found in registry. Using default.\n"));
 			for(index=0; index<NR_OUT_AXES; index++)
 			{
 				pDevExt->AxesScale[index] = MAX_VALUE;
@@ -974,10 +974,10 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 			}
 		}
 
-		ReceivedDataLen = ReadRegistry(hKey, L"LFullRange", TempRegData, sizeof(TempRegData));
+		ReceivedDataLen = ReadRegistry(hKey, L"LFullRange\n", TempRegData, sizeof(TempRegData));
 		if(ReceivedDataLen != 4)
 		{
-			KdPrint(("XBCDReadConfig: LFullRange not found in registry. Using default."));
+			KdPrint(("XBCDReadConfig: LFullRange not found in registry. Using default.\n"));
 			pDevExt->bFullRange[0] = FALSE;
 		}
 		else
@@ -985,10 +985,10 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 			pDevExt->bFullRange[0] = (BOOLEAN)TempRegData[0];
 		}
 
-		ReceivedDataLen = ReadRegistry(hKey, L"RFullRange", TempRegData, sizeof(TempRegData));
+		ReceivedDataLen = ReadRegistry(hKey, L"RFullRange\n", TempRegData, sizeof(TempRegData));
 		if(ReceivedDataLen != 4)
 		{
-			KdPrint(("XBCDReadConfig: RFullRange not found in registry. Using default."));
+			KdPrint(("XBCDReadConfig: RFullRange not found in registry. Using default.\n"));
 			pDevExt->bFullRange[1] = FALSE;
 		}
 		else
@@ -996,10 +996,10 @@ void XBCDReadConfig(IN PDEVICE_OBJECT pFdo)
 			pDevExt->bFullRange[1] = (BOOLEAN)TempRegData[0];
 		}
 
-		ReceivedDataLen = ReadRegistry(hKey, L"NButtons", TempRegData, sizeof(TempRegData));
+		ReceivedDataLen = ReadRegistry(hKey, L"NButtons\n", TempRegData, sizeof(TempRegData));
 		if(ReceivedDataLen != 4)
 		{
-			KdPrint(("XBCDReadConfig: NButtons not found in registry. Using default."));
+			KdPrint(("XBCDReadConfig: NButtons not found in registry. Using default.\n"));
 			pDevExt->nButtons = NR_OUT_BUTTONS;
 		}
 		else
@@ -1062,7 +1062,7 @@ int ReadRegistry(HANDLE hKey, PCWSTR entry, PUCHAR Values, unsigned int BufSize)
 	/* The minimum size is 16 bytes (length of the naked structure) */
 	if(size < sizeof(Vpi))
 	{
-		KdPrint(("ReadRegistry: Can't access value or get size."));
+		KdPrint(("ReadRegistry: Can't access value or get size.\n"));
 		return RawDataLen;
 	}
 
@@ -1093,7 +1093,7 @@ int ReadRegistry(HANDLE hKey, PCWSTR entry, PUCHAR Values, unsigned int BufSize)
 	}
 	else RawDataLen = -1;
 	
-	KdPrint(("ReadRegistry: Read %i bytes.", RawDataLen));
+	KdPrint(("ReadRegistry: Read %i bytes.\n", RawDataLen));
 	return RawDataLen;
 }
 

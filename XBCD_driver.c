@@ -324,7 +324,7 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 		}
 	default:
 		{
-			KdPrint(("XBCDDispatchPnp - Irp %d not supported", stack->MinorFunction));
+			KdPrint(("XBCDDispatchPnp - Irp 0x%02X not supported", stack->MinorFunction));
 			
 			IoSkipCurrentIrpStackLocation (pIrp);
 			status = IoCallDriver(pDevExt->pLowerPdo, pIrp);

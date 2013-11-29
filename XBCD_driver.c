@@ -325,8 +325,9 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 		}
 	case IRP_MN_QUERY_ID:
 		{
-			PWCHAR idstring,id;
+			PWCHAR idstring=0,id;
 			ULONG nchars,size;
+			KdPrint(("XBCDDispatchPnp - IRP_MN_QUERY_ID id=0x%02X\n",stack->Parameters.QueryId.IdType));
 			switch (stack->Parameters.QueryId.IdType)
 			{
 			case BusQueryInstanceID:
@@ -339,18 +340,32 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 				idstring = L"*WCO0D01";
 				break;
 			default:
-				return CompleteRequest(Irp);
+				IoSkipCurrentIrpStackLocation (pIrp);
+				status = IoCallDriver(pDevExt->pLowerPdo, pIrp);
+				ReleaseRemoveLock(&pDevExt->RemoveLock, pIrp);
+				break;
 			}
-			nchars = wcslen(idstring);
-			size = (nchars + 2) * sizeof(WCHAR);
-			id = (PWCHAR) ExAllocatePool(PagedPool, size);
-			if (!id)
-				return CompleteRequest(Irp, STATUS_INSUFFICIENT_RESOURCES);
-			wcscpy(id, idstring);
-			id[nchars + 1] = 0;
-			return CompleteRequest(Irp, STATUS_SUCCESS, (ULONG_PTR) id);
-		}
-		
+			if(idstring!=0){
+				nchars = wcslen(idstring);
+				size = (nchars + 2) * sizeof(WCHAR);
+				id = (PWCHAR) ExAllocatePool(PagedPool, size);
+				if (!id){
+					pIrp->IoStatus.Information = 0;
+					pIrp->IoStatus.Status = STATUS_INSUFFICIENT_RESOURCES;
+					IoCompleteRequest(pIrp, IO_NO_INCREMENT);
+					ReleaseRemoveLock(&pDevExt->RemoveLock, pIrp);
+					status=STATUS_INSUFFICIENT_RESOURCES;
+				}
+				else{
+					wcscpy(id, idstring);
+					id[nchars + 1] = 0;
+					pIrp->IoStatus.Information = id;
+					pIrp->IoStatus.Status = STATUS_SUCCESS;
+					IoCompleteRequest(pIrp, IO_NO_INCREMENT);
+					ReleaseRemoveLock(&pDevExt->RemoveLock, pIrp);
+					status=STATUS_SUCCESS;
+				}
+			}
 		break;
 		}
 	default:

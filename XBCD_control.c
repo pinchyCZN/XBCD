@@ -385,7 +385,7 @@ NTSTATUS XBCDDispatchIntDevice(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 
 		default:
 			{
-				KdPrint(("XBCDDispatchIntDevice: Irp not implemented\n"));
+				KdPrint(("XBCDDispatchIntDevice: Irp not implemented %08X\n",stack->Parameters.DeviceIoControl.IoControlCode));
 				Status=STATUS_NOT_SUPPORTED;
 				break;
 			}

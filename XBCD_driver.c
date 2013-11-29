@@ -330,19 +330,14 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 			KdPrint(("XBCDDispatchPnp - IRP_MN_QUERY_ID id=0x%02X\n",stack->Parameters.QueryId.IdType));
 			switch (stack->Parameters.QueryId.IdType)
 			{
-			case BusQueryInstanceID:
-				idstring = L"0000";
-				break;
 			case BusQueryDeviceID:
-				idstring = L"ROOT\\*WCO0D01";
+				idstring = L"ROOT\\XBCD";
 				break;
 			case BusQueryHardwareIDs:
-				idstring = L"*WCO0D01";
+				idstring = L"ROOT\\XBCD";
 				break;
 			default:
-				IoSkipCurrentIrpStackLocation (pIrp);
-				status = IoCallDriver(pDevExt->pLowerPdo, pIrp);
-				ReleaseRemoveLock(&pDevExt->RemoveLock, pIrp);
+				idstring=0;
 				break;
 			}
 			if(idstring!=0){
@@ -350,6 +345,7 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 				size = (nchars + 2) * sizeof(WCHAR);
 				id = (PWCHAR) ExAllocatePool(PagedPool, size);
 				if (!id){
+					KdPrint(("XBCDDispatchPnp - IRP_MN_QUERY_ID sending string FAIL\n"));
 					pIrp->IoStatus.Information = 0;
 					pIrp->IoStatus.Status = STATUS_INSUFFICIENT_RESOURCES;
 					IoCompleteRequest(pIrp, IO_NO_INCREMENT);
@@ -357,6 +353,7 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 					status=STATUS_INSUFFICIENT_RESOURCES;
 				}
 				else{
+					KdPrint(("XBCDDispatchPnp - IRP_MN_QUERY_ID sending string SUCCESS!\n"));
 					wcscpy(id, idstring);
 					id[nchars + 1] = 0;
 					pIrp->IoStatus.Information = id;
@@ -365,6 +362,10 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 					ReleaseRemoveLock(&pDevExt->RemoveLock, pIrp);
 					status=STATUS_SUCCESS;
 				}
+			}else{
+				IoSkipCurrentIrpStackLocation (pIrp);
+				status = IoCallDriver(pDevExt->pLowerPdo, pIrp);
+				ReleaseRemoveLock(&pDevExt->RemoveLock, pIrp);
 			}
 		break;
 		}

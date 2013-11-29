@@ -49,6 +49,7 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT pDriverObject, IN PUNICODE_STRING pRegist
 	will be allocated by the system automatically
 	*/
 	hidMinidriverRegistration.DeviceExtensionSize	= sizeof(DEVICE_EXTENSION);
+//	hidMinidriverRegistration.DevicesArePolled		= FALSE;
 	hidMinidriverRegistration.DevicesArePolled		= TRUE;
 
 	status = HidRegisterMinidriver(&hidMinidriverRegistration);
@@ -321,6 +322,36 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 			KdPrint(("XBCDDispatchPnp - IRP_MN_SURPRISE_REMOVAL exit\n"));
 			
 			break;
+		}
+	case IRP_MN_QUERY_ID:
+		{
+			PWCHAR idstring,id;
+			ULONG nchars,size;
+			switch (stack->Parameters.QueryId.IdType)
+			{
+			case BusQueryInstanceID:
+				idstring = L"0000";
+				break;
+			case BusQueryDeviceID:
+				idstring = L"ROOT\\*WCO0D01";
+				break;
+			case BusQueryHardwareIDs:
+				idstring = L"*WCO0D01";
+				break;
+			default:
+				return CompleteRequest(Irp);
+			}
+			nchars = wcslen(idstring);
+			size = (nchars + 2) * sizeof(WCHAR);
+			id = (PWCHAR) ExAllocatePool(PagedPool, size);
+			if (!id)
+				return CompleteRequest(Irp, STATUS_INSUFFICIENT_RESOURCES);
+			wcscpy(id, idstring);
+			id[nchars + 1] = 0;
+			return CompleteRequest(Irp, STATUS_SUCCESS, (ULONG_PTR) id);
+		}
+		
+		break;
 		}
 	default:
 		{

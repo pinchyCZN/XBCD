@@ -27,6 +27,46 @@ ULONG _fltused = 0;
 
 /*! This pragma keeps code in physical memory */
 #pragma LOCKEDCODE
+/*****************************************************************************/
+NTSTATUS read_mouse_data(PDEVICE_OBJECT pFdo, PIRP pIrp)
+{
+    PIO_STACK_LOCATION stack = IoGetCurrentIrpStackLocation(pIrp);
+	int size;
+	int reportid;
+	unsigned char *buf;
+	LARGE_INTEGER tstamp;
+	PDEVICE_EXTENSION pDevExt = GET_MINIDRIVER_DEVICE_EXTENSION(pFdo);
+	size=stack->Parameters.DeviceIoControl.OutputBufferLength;
+	buf=pIrp->UserBuffer;
+	if(size<=0 || buf==0){
+		//KdPrint(("read_mouse_data exit early size=%d buf=%08X\n",size,buf));
+		pIrp->IoStatus.Information=size;
+		pIrp->IoStatus.Status=STATUS_SUCCESS;
+		IoCompleteRequest(pIrp, IO_NO_INCREMENT);
+		return STATUS_SUCCESS;
+	}
+	RtlZeroMemory(buf, size);
+	if(size<=5)
+		reportid=1;
+	else
+		reportid=2;
+	buf[0]=reportid;
+	buf[1]=0; //buttons
+	buf[2]=0;
+	buf[3]=0;
+	buf[4]=0; //wheel
+	pIrp->IoStatus.Information=size;
+	pIrp->IoStatus.Status=STATUS_SUCCESS;
+	IoCompleteRequest(pIrp, IO_NO_INCREMENT);
+	KeQueryTickCount(&tstamp);
+	//tstamp.QuadPart = (tstamp.QuadPart * tinc);  // / 10000;
+	if(tstamp.QuadPart>(pDevExt->tick+100)){
+		pDevExt->tick=tstamp.QuadPart;
+		KdPrint(("read_mouse_data sucess size %d rpt# %d\n",size,reportid));
+	}
+	return STATUS_SUCCESS;
+}
+
 NTSTATUS XBCDDispatchIntDevice(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 {
 //	unsigned int iTemp;
@@ -34,7 +74,7 @@ NTSTATUS XBCDDispatchIntDevice(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
     NTSTATUS Status = STATUS_SUCCESS;
     PDEVICE_EXTENSION pDevExt = GET_MINIDRIVER_DEVICE_EXTENSION(pFdo);
 
-	KdPrint(("XBCDDispatchIntDevice - enter switch\n"));
+//	KdPrint(("XBCDDispatchIntDevice - enter switch\n"));
 
 		switch(stack->Parameters.DeviceIoControl.IoControlCode)
 		{
@@ -82,10 +122,11 @@ NTSTATUS XBCDDispatchIntDevice(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 		case IOCTL_HID_GET_DEVICE_DESCRIPTOR:
 			{
 				PHID_DESCRIPTOR pHidDescriptor;
-				USHORT RepDescSize;
+				USHORT RepDescSize=0;
 				pHidDescriptor = (PHID_DESCRIPTOR) pIrp->UserBuffer;
 				
-				KdPrint(("XBCDDispatchIntDevice - sending device descriptor\n"));
+				KdPrint(("XBCDDispatchIntDevice - sending device descriptor size=%d\n",stack->Parameters.DeviceIoControl.OutputBufferLength));
+				KdPrint(("sizeof(HID_DESCRIPTOR)=%d\n",sizeof(HID_DESCRIPTOR)));
 				if (stack->Parameters.DeviceIoControl.OutputBufferLength < sizeof(HID_DESCRIPTOR))
 				{
 					Status = STATUS_BUFFER_TOO_SMALL;
@@ -98,11 +139,11 @@ NTSTATUS XBCDDispatchIntDevice(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 				
 				pHidDescriptor->bLength = sizeof(HID_DESCRIPTOR);
 				pHidDescriptor->bDescriptorType = HID_HID_DESCRIPTOR_TYPE;
-				pHidDescriptor->bcdHID = HID_REVISION;
+				pHidDescriptor->bcdHID = 1;
 				pHidDescriptor->bCountry = 0;
-				pHidDescriptor->bNumDescriptors = 2; //1
+				pHidDescriptor->bNumDescriptors = 1;
 				pHidDescriptor->DescriptorList[0].bReportType = HID_REPORT_DESCRIPTOR_TYPE;
-				RepDescSize = GetRepDesc(pDevExt, NULL);
+				//RepDescSize = GetRepDesc(pDevExt, NULL);
 				RepDescSize += GetRepDesc2(pDevExt, NULL);
 				pHidDescriptor->DescriptorList[0].wReportLength = RepDescSize;
 				
@@ -115,13 +156,13 @@ NTSTATUS XBCDDispatchIntDevice(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 
 		case IOCTL_HID_GET_REPORT_DESCRIPTOR:
 			{
-				int iSize;
+				unsigned int iSize=0;
 				PUCHAR pBuffer = (PUCHAR)pIrp->UserBuffer;
 
 				KdPrint(("XBCDDispatchIntDevice - sending report descriptor\n"));
 
-				iSize = GetRepDesc(pDevExt, NULL);
-				iSize += GetRepDesc2(pDevExt, NULL);
+				//iSize = GetRepDesc(pDevExt, NULL);
+				iSize = GetRepDesc2(pDevExt, NULL);
 
 				KdPrint(("IOCTL_HID_GET_REPORT_DESCRIPTOR - Size of buffer = %d\n", stack->Parameters.DeviceIoControl.OutputBufferLength));
 
@@ -131,9 +172,9 @@ NTSTATUS XBCDDispatchIntDevice(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 					KdPrint(("Buffer for Report Descriptor is too small\n"));
 					break;
 				}
-				
-				iSize = GetRepDesc(pDevExt, pBuffer);
-				iSize += GetRepDesc2(pDevExt, pBuffer+iSize);
+				//iSize = GetRepDesc(pDevExt, pBuffer);
+				iSize = GetRepDesc2(pDevExt, pBuffer);
+				//iSize += GetRepDesc2(pDevExt, pBuffer+iSize);
 				
 				pIrp->IoStatus.Information = iSize;
 				
@@ -149,26 +190,35 @@ NTSTATUS XBCDDispatchIntDevice(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 		case IOCTL_HID_READ_REPORT:
 			{	
 				LARGE_INTEGER timeout;
+				int size;
+				size=stack->Parameters.DeviceIoControl.OutputBufferLength;
 
-				KdPrint(("XBCDDispatchIntDevice - IOCTL_HID_READ_REPORT entry\n"));
+				if(size>10)
+					KdPrint(("XBCDDispatchIntDevice - IOCTL_HID_READ_REPORT entry size=%d\n",size));
+				
+				/*
 				if(stack->Parameters.DeviceIoControl.OutputBufferLength < OUT_BUFFER_LEN)
 				{
 					KdPrint(("IOCTL_HID_READ_REPORT - Buffer is too small\n"));
 					Status = STATUS_BUFFER_TOO_SMALL;
 					break;
 				}
+				*/
+				
 
-				Status=XBCDReadData(pFdo, pIrp);
+				//Status=XBCDReadData(pFdo, pIrp);
+				Status=read_mouse_data(pFdo,pIrp);
 
 				//Set a timer to keep reading data for another 5 seconds
 				//Fixes problems with button configuration in games
-				timeout.QuadPart = -50000000;
-				KeSetTimer(&pDevExt->timer, timeout, &pDevExt->timeDPC);
-				pDevExt->timerEnabled = TRUE;
 				
-				Status = DeviceRead(pDevExt);
-
-				KdPrint(("XBCDDispatchIntDevice - IOCTL_HID_READ_REPORT exit\n"));
+				//timeout.QuadPart = -50000000;
+				//KeSetTimer(&pDevExt->timer, timeout, &pDevExt->timeDPC);
+				//pDevExt->timerEnabled = TRUE;
+				
+				//Status = DeviceRead(pDevExt);
+				
+				//KdPrint(("XBCDDispatchIntDevice - IOCTL_HID_READ_REPORT exit\n"));
 				return Status;
 			}
 
@@ -345,17 +395,17 @@ NTSTATUS XBCDDispatchIntDevice(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 
 	if(Status != STATUS_PENDING)
 	{
-		KdPrint(("XBCDDispatchIntDevice - irp status not pending\n"));
+//		KdPrint(("XBCDDispatchIntDevice - irp status not pending\n"));
 		IoCompleteRequest(pIrp, IO_NO_INCREMENT);
 		//Status = STATUS_SUCCESS;
 	}
 	else
 	{
-		KdPrint(("XBCDDispatchIntDevice - mark the irp as pending\n"));
+//		KdPrint(("XBCDDispatchIntDevice - mark the irp as pending\n"));
 		IoMarkIrpPending(pIrp);
 	}
 
-	KdPrint(("XBCDDispatchIntDevice - returning\n"));
+//	KdPrint(("XBCDDispatchIntDevice - returning\n"));
     return Status;
 }
 
@@ -518,13 +568,11 @@ void applyDeadzone2D(PLONG lpAxis1, PLONG lpAxis2, LONG DeadZone, BOOLEAN bFullA
 	}
 }
 
-/*****************************************************************************/
 
-/*! */
+
 NTSTATUS XBCDReadData(PDEVICE_OBJECT pFdo, PIRP pIrp)
 {
-	NTSTATUS Status;
-	int index, MapIndex;
+	int index;
 
 	// Quote: '__int16 is synonymous with type short'
 	// (Used as a general purpose 16 Bit variable in this function)

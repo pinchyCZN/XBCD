@@ -94,9 +94,9 @@ Byte   : Bit 7   6   5   4   3   2   1   0 | 7   6   5   4   3   2   1   0
 [34-35]:   |                         Left-Stick Y                          |
 [36-37]:   |                         Right-Stick X                         |
 [38-39]:   |                         Right-Stick Y                         |
-[40] report id mouse 5
+[40] report id mouse size =1+4
 [41-44] buttons/dir
-[45] report id keyboard 6
+[45] report id keyboard size =1+13
 [46-58] keys
 Output
 -------
@@ -300,7 +300,7 @@ UCHAR mousekey[]=
 	0xA1, 0x01,         //  Collection (Application),
 	0x09, 0x01,         //      Usage (Pointer),
 	0xA1, 0x00,         //      Collection (Physical),
-	0x85, 0x05,         //          Report ID (5),
+	0x85, 0x01,         //          Report ID (5),
 	0x05, 0x09,         //          Usage Page (Button),
 	0x19, 0x01,         //          Usage Minimum (01h),
 	0x29, 0x03,         //          Usage Maximum (03h),
@@ -323,10 +323,11 @@ UCHAR mousekey[]=
 	0x81, 0x06,         //          Input (Variable, Relative),
 	0xC0,               //      End Collection,
 	0xC0,               //  End Collection,
+	
 	0x05, 0x01,         //  Usage Page (Desktop),
 	0x09, 0x06,         //  Usage (Keyboard),
 	0xA1, 0x01,         //  Collection (Application),
-	0x85, 0x06,         //      Report ID (6),
+	0x85, 0x02,         //      Report ID (6),
 	0x05, 0x07,         //      Usage Page (Keyboard),
 	0x19, 0xE0,         //      Usage Minimum (KB Leftcontrol),
 	0x29, 0xE7,         //      Usage Maximum (KB Right GUI),
@@ -356,6 +357,7 @@ UCHAR mousekey[]=
 	0x26, 0xA5, 0x00,   //      Logical Maximum (165),
 	0x81, 0x00,         //      Input,
 	0xC0,               //  End Collection,
+	
 };
 
 USHORT GetRepDesc2(PDEVICE_EXTENSION pDevExt, PUCHAR Buffer)

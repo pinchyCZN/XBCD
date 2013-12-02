@@ -80,13 +80,13 @@ NTSTATUS DeviceRead(PDEVICE_EXTENSION pDevExt)
 	PIO_STACK_LOCATION stack;
 	KIRQL oldirql;
 
-	KdPrint(("DeviceRead - enter spinlock\n"));
+//	KdPrint(("DeviceRead - enter spinlock\n"));
 	KeAcquireSpinLock(&pDevExt->ReadLock, &oldirql);
 
 	// If a read is already pending.  Don't start another one.
 	if (pDevExt->bReadPending)
 	{
-		KdPrint(("DeviceWrite - Read already pending\n"));
+		//KdPrint(("DeviceWrite - Read already pending\n"));
 		KeReleaseSpinLock(&pDevExt->ReadLock, oldirql);
 		return STATUS_DEVICE_BUSY;
 	}
@@ -116,7 +116,7 @@ NTSTATUS DeviceRead(PDEVICE_EXTENSION pDevExt)
 		return status;
 	}
 
-	KdPrint(("DeviceRead - Building urb\n"));
+//	KdPrint(("DeviceRead - Building urb\n"));
 	UsbBuildInterruptOrBulkTransferRequest(urb, sizeof(struct _URB_BULK_OR_INTERRUPT_TRANSFER),
 		pDevExt->hInPipe, &pDevExt->hwInData, NULL, 20, USBD_TRANSFER_DIRECTION_IN | USBD_SHORT_TRANSFER_OK, NULL);
 
@@ -133,7 +133,7 @@ NTSTATUS DeviceRead(PDEVICE_EXTENSION pDevExt)
 	// and we need to reuse it.  IoReuseIrp is not available in Windows 9x.
 	Irp->Cancel = FALSE;
 
-	KdPrint(("DeviceRead - Returning\n"));
+//	KdPrint(("DeviceRead - Returning\n"));
 	status = IoCallDriver(pDevExt->pLowerPdo, Irp);
 	if(!NT_SUCCESS(status))
 	{
@@ -150,16 +150,16 @@ NTSTATUS ReadCompletion(PDEVICE_OBJECT junk, PIRP pIrp, PVOID Context)
 	KIRQL oldirql;
 	NTSTATUS Status;
 
-	KdPrint(("ReadCompletion - enter\n"));
+//	KdPrint(("ReadCompletion - enter\n"));
 	KeAcquireSpinLock(&pDevExt->ReadLock, &oldirql);
 
 	if (NT_SUCCESS(pIrp->IoStatus.Status))
 	{
-		KdPrint(("ReadCompletion - Success reading report\n"));
+//		KdPrint(("ReadCompletion - Success reading report\n"));
 	}
 	else
 	{
-		KdPrint(("ReadCompletion - Failed to read report\n"));
+//		KdPrint(("ReadCompletion - Failed to read report\n"));
 
 		pDevExt->timerEnabled = FALSE;
 		KeCancelTimer(&pDevExt->timer);
@@ -168,13 +168,13 @@ NTSTATUS ReadCompletion(PDEVICE_OBJECT junk, PIRP pIrp, PVOID Context)
 	pDevExt->bReadPending = FALSE;	// allow another read to be started
 	KeReleaseSpinLock(&pDevExt->ReadLock, oldirql);
 
-	KdPrint(("ReadCompletion - Releasing Removelock\n"));
+//	KdPrint(("ReadCompletion - Releasing Removelock\n"));
 	ReleaseRemoveLock(&pDevExt->RemoveLock, pDevExt->ReadInfo.pIrp);
 
 	if(pDevExt->timerEnabled)
 		Status = DeviceRead(pDevExt);
 	
-	KdPrint(("ReadCompletion - Returning\n"));
+//	KdPrint(("ReadCompletion - Returning\n"));
 	return STATUS_MORE_PROCESSING_REQUIRED;
 }
 

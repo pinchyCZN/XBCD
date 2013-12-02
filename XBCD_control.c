@@ -27,6 +27,8 @@ ULONG _fltused = 0;
 
 /*! This pragma keeps code in physical memory */
 #pragma LOCKEDCODE
+
+
 /*****************************************************************************/
 NTSTATUS read_mouse_data(PDEVICE_OBJECT pFdo, PIRP pIrp)
 {
@@ -46,15 +48,27 @@ NTSTATUS read_mouse_data(PDEVICE_OBJECT pFdo, PIRP pIrp)
 		return STATUS_SUCCESS;
 	}
 	RtlZeroMemory(buf, size);
-	if(size<=5)
+	if(size<=5){
 		reportid=1;
-	else
+		buf[0]=1; //reportid;
+		buf[1]=0; //buttons
+		buf[2]=0; //pDevExt->hwInData[12];
+		buf[3]=0;
+		buf[4]=0; //wheel
+	}
+	else{
+		int i;
 		reportid=2;
-	buf[0]=reportid;
-	buf[1]=0; //buttons
-	buf[2]=0;
-	buf[3]=0;
-	buf[4]=0; //wheel
+
+		buf[0]=1; //reportid;
+		buf[1]=0; //ctrl-alt etc
+		buf[2]=0; //unused
+		for(i=0;i<4;i++){
+			if(pDevExt->hwInData[2] & (1<<i))
+				buf[3+i]='a'+i;
+		}
+		buf[4]=VK_ESCAPE;
+	}
 	pIrp->IoStatus.Information=size;
 	pIrp->IoStatus.Status=STATUS_SUCCESS;
 	IoCompleteRequest(pIrp, IO_NO_INCREMENT);
@@ -193,8 +207,8 @@ NTSTATUS XBCDDispatchIntDevice(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 				int size;
 				size=stack->Parameters.DeviceIoControl.OutputBufferLength;
 
-				if(size>10)
-					KdPrint(("XBCDDispatchIntDevice - IOCTL_HID_READ_REPORT entry size=%d\n",size));
+				//if(size>10)
+				//	KdPrint(("XBCDDispatchIntDevice - IOCTL_HID_READ_REPORT entry size=%d\n",size));
 				
 				/*
 				if(stack->Parameters.DeviceIoControl.OutputBufferLength < OUT_BUFFER_LEN)
@@ -212,11 +226,11 @@ NTSTATUS XBCDDispatchIntDevice(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 				//Set a timer to keep reading data for another 5 seconds
 				//Fixes problems with button configuration in games
 				
-				//timeout.QuadPart = -50000000;
-				//KeSetTimer(&pDevExt->timer, timeout, &pDevExt->timeDPC);
-				//pDevExt->timerEnabled = TRUE;
+				timeout.QuadPart = -50000000;
+				KeSetTimer(&pDevExt->timer, timeout, &pDevExt->timeDPC);
+				pDevExt->timerEnabled = TRUE;
 				
-				//Status = DeviceRead(pDevExt);
+				Status = DeviceRead(pDevExt);
 				
 				//KdPrint(("XBCDDispatchIntDevice - IOCTL_HID_READ_REPORT exit\n"));
 				return Status;

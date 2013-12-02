@@ -27,6 +27,7 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT pDriverObject, IN PUNICODE_STRING pRegist
 {
     NTSTATUS status = STATUS_SUCCESS;
 	HID_MINIDRIVER_REGISTRATION hidMinidriverRegistration;
+	KdPrint(("Minidriver DriverEntry\n"));
 
     pDriverObject->MajorFunction[IRP_MJ_CREATE]		= XBCDCreate;
     pDriverObject->MajorFunction[IRP_MJ_CLOSE]		= XBCDClose;
@@ -74,6 +75,7 @@ NTSTATUS XBCDCreate(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 {
     NTSTATUS status = STATUS_SUCCESS;
 
+	KdPrint(("XBCDCreate enter\n"));
     pIrp->IoStatus.Status = status;
     pIrp->IoStatus.Information = 0;
     IoCompleteRequest(pIrp, IO_NO_INCREMENT);
@@ -327,14 +329,64 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 		{
 			PWCHAR idstring=0,id;
 			ULONG nchars,size;
+			PIO_STACK_LOCATION  prev_stack,next_stack;
 			KdPrint(("XBCDDispatchPnp - IRP_MN_QUERY_ID id=0x%02X\n",stack->Parameters.QueryId.IdType));
+			prev_stack = ((PIO_STACK_LOCATION) ((UCHAR *) (stack) + sizeof(IO_STACK_LOCATION)));
+			next_stack = IoGetNextIrpStackLocation(pIrp);
+			KdPrint(("stack locations %08X %08X\n",stack,prev_stack));
+			KdPrint(("                %08X %08X\n",next_stack,prev_stack));
+			KdPrint(("               =%08X %08X %08X\n",pDevExt->comp_dev_num,next_stack->DeviceObject,pDevExt->pPdo->DriverObject));
+			//if(prev_stack==stack)
 			switch (stack->Parameters.QueryId.IdType)
 			{
 			case BusQueryDeviceID:
-				idstring = L"ROOT\\XBCD";
+				switch(pDevExt->comp_dev_num){
+				case 0:
+					idstring = L"ROOT\\zXBCD0";
+					break;
+				case 1:
+					idstring = L"ROOT\\XBCD1";
+					break;
+				default:
+				case 2:
+					idstring = L"ROOT\\XBCD2";
+					idstring=0;
+					break;
+				case 3:
+					idstring = L"ROOT\\XBCD3";
+					idstring=0;
+					break;
+				case 4:
+					idstring = L"ROOT\\XBCD4";
+					idstring=0;
+					break;
+				}
 				break;
 			case BusQueryHardwareIDs:
-				idstring = L"ROOT\\XBCD";
+				switch(pDevExt->comp_dev_num){
+				case 0:
+					idstring = L"zXBCD0";
+					break;
+				case 1:
+					idstring = L"XBCD1";
+					break;
+				default:
+				case 2:
+					idstring = L"XBCD2";
+					idstring=0;
+					break;
+				case 3:
+					idstring = L"XBCD3";
+					idstring=0;
+					break;
+				case 4:
+					idstring = L"XBCD4";
+					idstring=0;
+					break;
+				}
+				//pDevExt->comp_dev_num++;
+				if(pDevExt->comp_dev_num>2)
+					pDevExt->comp_dev_num=2;
 				break;
 			default:
 				idstring=0;
@@ -369,9 +421,17 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 			}
 		break;
 		}
+	case IRP_MN_QUERY_DEVICE_RELATIONS:
+		{
+			KdPrint(("XBCDDispatchPnp - IRP_MN_QUERY_DEVICE_RELATIONS 0x%02X\n",stack->Parameters.QueryDeviceRelations.Type));
+			IoSkipCurrentIrpStackLocation (pIrp);
+			status = IoCallDriver(pDevExt->pLowerPdo, pIrp);
+			ReleaseRemoveLock(&pDevExt->RemoveLock, pIrp);
+			break;
+		}
 	default:
 		{
-			KdPrint(("XBCDDispatchPnp - Irp %d not supported\n", stack->MinorFunction));
+			KdPrint(("XBCDDispatchPnp - Irp 0x%02X not supported\n", stack->MinorFunction));
 			
 			IoSkipCurrentIrpStackLocation (pIrp);
 			status = IoCallDriver(pDevExt->pLowerPdo, pIrp);

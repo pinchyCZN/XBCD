@@ -196,6 +196,7 @@ typedef struct _DEVICE_EXTENSION{
     PDEVICE_OBJECT pPdo;
 	BOOLEAN DeviceStarted;
 	unsigned __int64 tick;
+	int comp_dev_num;
 
 	/* Overall number of layouts */
 	unsigned int NrOfLayouts;

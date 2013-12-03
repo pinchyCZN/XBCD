@@ -70,7 +70,38 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT pDriverObject, IN PUNICODE_STRING pRegist
 	}
     return status;
 }
+NTSTATUS SyncIrpCompletion(IN PDEVICE_OBJECT DeviceObject,IN PIRP Irp,IN PVOID Context)
+{ 
+    UNREFERENCED_PARAMETER(DeviceObject);
+    if (Context != NULL && Irp->PendingReturned == TRUE) {
+        KeSetEvent ((PKEVENT) Context, IO_NO_INCREMENT, FALSE);
+    }
+    return STATUS_MORE_PROCESSING_REQUIRED;  
+}
+NTSTATUS SendIrpSynchronously(IN PDEVICE_OBJECT Device,IN PIRP Irp)
+{
+    NTSTATUS status;
+    KEVENT completionEvent;
 
+    KeInitializeEvent(&completionEvent, NotificationEvent, FALSE);
+    IoSetCompletionRoutine(Irp,
+        SyncIrpCompletion,
+        (PVOID) &completionEvent,
+        TRUE,
+        TRUE,
+        TRUE);
+
+    status = IoCallDriver(Device, Irp);
+    if (status == STATUS_PENDING) {
+        KeWaitForSingleObject(&completionEvent,
+                              Executive,
+                              KernelMode,
+                              FALSE,
+                              NULL);
+        status =Irp->IoStatus.Status;
+    }
+    return status;
+}
 NTSTATUS XBCDCreate(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 {
     NTSTATUS status = STATUS_SUCCESS;
@@ -330,13 +361,17 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 			PWCHAR idstring=0,id;
 			ULONG nchars,size;
 			PIO_STACK_LOCATION  prev_stack,next_stack;
+		    
+			IoCopyCurrentIrpStackLocationToNext(pIrp);
+			status = SendIrpSynchronously(GET_LOWER_DEVICE_OBJECT(pFdo),pIrp);
+
 			KdPrint(("XBCDDispatchPnp - IRP_MN_QUERY_ID id=0x%02X\n",stack->Parameters.QueryId.IdType));
 			prev_stack = ((PIO_STACK_LOCATION) ((UCHAR *) (stack) + sizeof(IO_STACK_LOCATION)));
 			next_stack = IoGetNextIrpStackLocation(pIrp);
 			KdPrint(("stack locations %08X %08X\n",stack,prev_stack));
 			KdPrint(("                %08X %08X\n",next_stack,prev_stack));
 			KdPrint(("               =%08X %08X %08X\n",pDevExt->comp_dev_num,next_stack->DeviceObject,pDevExt->pPdo->DriverObject));
-			//if(prev_stack==stack)
+			if (!NT_SUCCESS(status))
 			switch (stack->Parameters.QueryId.IdType)
 			{
 			case BusQueryDeviceID:

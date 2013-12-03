@@ -67,7 +67,7 @@ NTSTATUS read_mouse_data(PDEVICE_OBJECT pFdo, PIRP pIrp)
 			if(pDevExt->hwInData[2] & (1<<i))
 				buf[3+i]='a'+i;
 		}
-		buf[4]=VK_ESCAPE;
+	//	buf[4]=VK_ESCAPE;
 	}
 	pIrp->IoStatus.Information=size;
 	pIrp->IoStatus.Status=STATUS_SUCCESS;

@@ -1,0 +1,1 @@
+start E:\DEV\WinDDK\Debuggers\windbg -b -k com:pipe,port=\\.\pipe\com_1,resets=0

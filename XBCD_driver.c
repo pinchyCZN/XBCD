@@ -362,8 +362,9 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 			ULONG nchars,size;
 			PIO_STACK_LOCATION  prev_stack,next_stack;
 		    
-			IoCopyCurrentIrpStackLocationToNext(pIrp);
-			status = SendIrpSynchronously(GET_LOWER_DEVICE_OBJECT(pFdo),pIrp);
+			//IoCopyCurrentIrpStackLocationToNext(pIrp);
+			//status = SendIrpSynchronously(GET_LOWER_DEVICE_OBJECT(pFdo),pIrp);
+			//KdPrint(("SendIrpSynchronously status=0x%02X\n",status));
 
 			KdPrint(("XBCDDispatchPnp - IRP_MN_QUERY_ID id=0x%02X\n",stack->Parameters.QueryId.IdType));
 			prev_stack = ((PIO_STACK_LOCATION) ((UCHAR *) (stack) + sizeof(IO_STACK_LOCATION)));
@@ -371,24 +372,24 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 			KdPrint(("stack locations %08X %08X\n",stack,prev_stack));
 			KdPrint(("                %08X %08X\n",next_stack,prev_stack));
 			KdPrint(("               =%08X %08X %08X\n",pDevExt->comp_dev_num,next_stack->DeviceObject,pDevExt->pPdo->DriverObject));
-			if (!NT_SUCCESS(status))
+			//if (!NT_SUCCESS(status))
 			switch (stack->Parameters.QueryId.IdType)
 			{
 			case BusQueryDeviceID:
 				switch(pDevExt->comp_dev_num){
 				case 0:
-					idstring = L"ROOT\\zXBCD0";
+					idstring = L"ROOT\\tXBCD0";
 					break;
 				case 1:
-					idstring = L"ROOT\\XBCD1";
+					idstring = L"ROOT\\aXBCD1";
 					break;
 				default:
 				case 2:
-					idstring = L"ROOT\\XBCD2";
+					idstring = L"ROOT\\bXBCD2";
 					idstring=0;
 					break;
 				case 3:
-					idstring = L"ROOT\\XBCD3";
+					idstring = L"ROOT\\cXBCD3";
 					idstring=0;
 					break;
 				case 4:
@@ -400,28 +401,28 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 			case BusQueryHardwareIDs:
 				switch(pDevExt->comp_dev_num){
 				case 0:
-					idstring = L"zXBCD0";
+					idstring = L"tXBCD0";
 					break;
 				case 1:
-					idstring = L"XBCD1";
+					idstring = L"aXBCD1";
 					break;
 				default:
 				case 2:
-					idstring = L"XBCD2";
+					idstring = L"bXBCD2";
 					idstring=0;
 					break;
 				case 3:
-					idstring = L"XBCD3";
+					idstring = L"cXBCD3";
 					idstring=0;
 					break;
 				case 4:
-					idstring = L"XBCD4";
+					idstring = L"dXBCD4";
 					idstring=0;
 					break;
 				}
-				//pDevExt->comp_dev_num++;
-				if(pDevExt->comp_dev_num>2)
-					pDevExt->comp_dev_num=2;
+				pDevExt->comp_dev_num++;
+				//if(pDevExt->comp_dev_num>2)
+				//	pDevExt->comp_dev_num=2;
 				break;
 			default:
 				idstring=0;

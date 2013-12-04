@@ -295,7 +295,7 @@ UCHAR mousekey[]=
 	// +3 leds etc
 	// +10 keys
 	// 19 total
-/*
+
 	0x05, 0x01,         //  Usage Page (Desktop),
 	0x09, 0x02,         //  Usage (Mouse),
 	0xA1, 0x01,         //  Collection (Application),
@@ -324,11 +324,11 @@ UCHAR mousekey[]=
 	0x81, 0x06,         //          Input (Variable, Relative),
 	0xC0,               //      End Collection,
 	0xC0,               //  End Collection,
-*/
+/*
 	0x05, 0x01,         //  Usage Page (Desktop),
 	0x09, 0x06,         //  Usage (Keyboard),
 	0xA1, 0x01,         //  Collection (Application),
-	0x85, 0x01,         //      Report ID (6),
+	0x85, 0x02,         //      Report ID (6),
 	0x05, 0x07,         //      Usage Page (Keyboard),
 	0x19, 0xE0,         //      Usage Minimum (KB Leftcontrol),
 	0x29, 0xE7,         //      Usage Maximum (KB Right GUI),
@@ -358,7 +358,7 @@ UCHAR mousekey[]=
 	0x26, 0xA5, 0x00,   //      Logical Maximum (165),
 	0x81, 0x00,         //      Input,
 	0xC0,               //  End Collection,
-	
+*/	
 };
 
 USHORT GetRepDesc2(PDEVICE_EXTENSION pDevExt, PUCHAR Buffer)

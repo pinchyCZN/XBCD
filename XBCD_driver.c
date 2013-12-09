@@ -367,9 +367,10 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 			//KdPrint(("SendIrpSynchronously status=0x%02X\n",status));
 
 			KdPrint(("XBCDDispatchPnp - IRP_MN_QUERY_ID id=0x%02X\n",stack->Parameters.QueryId.IdType));
+			KdPrint(("pdev ext:%08X\n",pDevExt));
 			prev_stack = ((PIO_STACK_LOCATION) ((UCHAR *) (stack) + sizeof(IO_STACK_LOCATION)));
 			next_stack = IoGetNextIrpStackLocation(pIrp);
-			KdPrint(("stack locations %08X %08X\n",stack,prev_stack));
+			KdPrint(("stack locations %08X %08X\n",pDevExt->pFdo,pFdo));
 			KdPrint(("                %08X %08X\n",next_stack,prev_stack));
 			KdPrint(("               =%08X %08X %08X\n",pDevExt->comp_dev_num,next_stack->DeviceObject,pDevExt->pPdo->DriverObject));
 			//if (!NT_SUCCESS(status))
@@ -459,10 +460,45 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 		}
 	case IRP_MN_QUERY_DEVICE_RELATIONS:
 		{
-			KdPrint(("XBCDDispatchPnp - IRP_MN_QUERY_DEVICE_RELATIONS 0x%02X\n",stack->Parameters.QueryDeviceRelations.Type));
-			IoSkipCurrentIrpStackLocation (pIrp);
-			status = IoCallDriver(pDevExt->pLowerPdo, pIrp);
-			ReleaseRemoveLock(&pDevExt->RemoveLock, pIrp);
+			int i,type;
+			//KdPrint(("pdev ext:%08X\n",pDevExt));
+			//__asm{
+			//	int 3;
+			//}
+			type=stack->Parameters.QueryDeviceRelations.Type;
+			KdPrint(("XBCDDispatchPnp - IRP_MN_QUERY_DEVICE_RELATIONS 0x%02X\n",type));
+			KdPrint(("1pDevExt->comp_dev_num 0x%02X\n",0));
+			if(pDevExt->comp_dev_num>=0 && type==0){
+                PDEVICE_RELATIONS deviceRelations = NULL;
+				deviceRelations=ExAllocatePool(PagedPool, sizeof(DEVICE_RELATIONS));
+                if(deviceRelations != NULL) {
+                    RtlZeroMemory(deviceRelations,
+                                  sizeof(DEVICE_RELATIONS));
+
+                    //Irp->IoStatus.Information = (ULONG_PTR) deviceRelations;
+					pIrp->IoStatus.Information = deviceRelations;
+					pIrp->IoStatus.Status = STATUS_SUCCESS;
+
+                    deviceRelations->Count = 1;
+                    deviceRelations->Objects[0] = 0;//pDevExt->pPdo;
+                    ObReferenceObject(deviceRelations->Objects[0]);
+
+                    status = STATUS_SUCCESS;
+					KdPrint(("IRP_MN_QUERY_DEVICE_RELATIONS STATUS_SUCCESS\n"));
+                }
+				else
+					KdPrint(("IRP_MN_QUERY_DEVICE_RELATIONS alloc failed\n"));
+
+				IoCompleteRequest(pIrp, IO_NO_INCREMENT);
+				ReleaseRemoveLock(&pDevExt->RemoveLock, pIrp);
+				status=STATUS_SUCCESS;
+			}
+			else{
+				IoSkipCurrentIrpStackLocation (pIrp);
+				status = IoCallDriver(pDevExt->pLowerPdo, pIrp);
+				ReleaseRemoveLock(&pDevExt->RemoveLock, pIrp);
+				KdPrint(("IRP_MN_QUERY_DEVICE_RELATIONS SKIP\n"));
+			}
 			break;
 		}
 	default:

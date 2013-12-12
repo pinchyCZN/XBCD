@@ -210,7 +210,7 @@ NTSTATUS CreateChild(PDEVICE_EXTENSION pdx, ULONG child_num, PDEVICE_OBJECT* ppd
 	px = (PPDO_EXTENSION) child->DeviceExtension;
 	px->is_child = child_num;
 	px->DeviceObject = child;
-	px->Fdo = pdx->DeviceObject;
+	px->Fdo = pdx->pDeviceObject;
 	
 	child->Flags &= ~DO_DEVICE_INITIALIZING;
 	*ppdo = child;
@@ -397,7 +397,7 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 			KdPrint(("pdev ext:%08X\n",pDevExt));
 			prev_stack = ((PIO_STACK_LOCATION) ((UCHAR *) (stack) + sizeof(IO_STACK_LOCATION)));
 			next_stack = IoGetNextIrpStackLocation(pIrp);
-			KdPrint(("stack locations %08X %08X\n",pDevExt->pFdo,pFdo));
+			KdPrint(("stack locations %08X %08X\n",pDevExt->is_child,pFdo));
 			KdPrint(("                %08X %08X\n",next_stack,prev_stack));
 			KdPrint(("               =%08X %08X %08X\n",pDevExt->comp_dev_num,next_stack->DeviceObject,pDevExt->pPdo->DriverObject));
 			//if (!NT_SUCCESS(status))
@@ -406,46 +406,20 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 			case BusQueryDeviceID:
 				switch(pDevExt->comp_dev_num){
 				case 0:
-					idstring = L"ROOT\\tXBCD0";
+					idstring = L"\\*WCO1104";
 					break;
 				case 1:
-					idstring = L"ROOT\\aXBCD1";
-					break;
-				default:
-				case 2:
-					idstring = L"ROOT\\bXBCD2";
-					idstring=0;
-					break;
-				case 3:
-					idstring = L"ROOT\\cXBCD3";
-					idstring=0;
-					break;
-				case 4:
-					idstring = L"ROOT\\XBCD4";
-					idstring=0;
+					idstring = L"\\*WCO1105";
 					break;
 				}
 				break;
 			case BusQueryHardwareIDs:
 				switch(pDevExt->comp_dev_num){
 				case 0:
-					idstring = L"tXBCD0";
+					idstring = L"*WCO1104";
 					break;
 				case 1:
-					idstring = L"aXBCD1";
-					break;
-				default:
-				case 2:
-					idstring = L"bXBCD2";
-					idstring=0;
-					break;
-				case 3:
-					idstring = L"cXBCD3";
-					idstring=0;
-					break;
-				case 4:
-					idstring = L"dXBCD4";
-					idstring=0;
+					idstring = L"*WCO1105";
 					break;
 				}
 				pDevExt->comp_dev_num++;
@@ -479,6 +453,7 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 					status=STATUS_SUCCESS;
 				}
 			}else{
+				KdPrint(("nooooooooooo strings\n"));
 				IoSkipCurrentIrpStackLocation (pIrp);
 				status = IoCallDriver(pDevExt->pLowerPdo, pIrp);
 				ReleaseRemoveLock(&pDevExt->RemoveLock, pIrp);
@@ -494,31 +469,60 @@ NTSTATUS XBCDDispatchPnp(IN PDEVICE_OBJECT pFdo, IN PIRP pIrp)
 			//}
 			type=stack->Parameters.QueryDeviceRelations.Type;
 			KdPrint(("XBCDDispatchPnp - IRP_MN_QUERY_DEVICE_RELATIONS 0x%02X\n",type));
-			KdPrint(("4pDevExt->comp_dev_num 0x%02X\n",0));
-			if(pDevExt->comp_dev_num>=0 && type==0){
-                PDEVICE_RELATIONS deviceRelations = NULL;
-				deviceRelations=ExAllocatePool(PagedPool, sizeof(DEVICE_RELATIONS));
-                if(deviceRelations != NULL) {
-                    RtlZeroMemory(deviceRelations,
-                                  sizeof(DEVICE_RELATIONS));
-
-                    //Irp->IoStatus.Information = (ULONG_PTR) deviceRelations;
-					pIrp->IoStatus.Information = deviceRelations;
-					pIrp->IoStatus.Status = STATUS_SUCCESS;
-
-                    deviceRelations->Count = 1;
-                    deviceRelations->Objects[0] = pDevExt->pFdo;
-                    ObReferenceObject(deviceRelations->Objects[0]);
-
-                    status = STATUS_SUCCESS;
-					KdPrint(("IRP_MN_QUERY_DEVICE_RELATIONS STATUS_SUCCESS\n"));
-                }
+			KdPrint(("4pIrp->IoStatus.Information 0x%08X\n",pIrp->IoStatus.Information));
+			KdPrint(("4pIrp->IoStatus.Status 0x%08X\n",pIrp->IoStatus.Status));
+			if(type==0){ //pIrp->IoStatus.Information==0 && 
+				PDEVICE_RELATIONS oldrel = (PDEVICE_RELATIONS) pIrp->IoStatus.Information;
+				PDEVICE_RELATIONS newrel;
+				
+				if (oldrel)
+				{						// extend existing list
+					ULONG size = sizeof(DEVICE_RELATIONS) + (oldrel->Count + 1) * sizeof(PDEVICE_OBJECT);
+					KdPrint(("IRP_MN_QUERY_DEVICE_RELATIONS extend old list\n"));
+					newrel = (PDEVICE_RELATIONS) ExAllocatePool(PagedPool, size);
+					if (newrel)
+					{					// copy & extend
+						RtlCopyMemory(newrel, oldrel, size -  2 * sizeof(PDEVICE_OBJECT));
+						ExFreePool(oldrel);
+					}					// copy & extend
+				}						// extend existing list
 				else
-					KdPrint(("IRP_MN_QUERY_DEVICE_RELATIONS alloc failed\n"));
-
+				{						// create new list
+					KdPrint(("IRP_MN_QUERY_DEVICE_RELATIONS create new list\n"));
+					newrel = (PDEVICE_RELATIONS) ExAllocatePool(PagedPool, sizeof(DEVICE_RELATIONS) + sizeof(PDEVICE_OBJECT));
+					newrel->Count = 0;
+				}						// create new list
+				
+				if (newrel)
+				{						// build new list
+					CreateChild(pDevExt,1,&pDevExt->pmouse);
+					CreateChild(pDevExt,2,&pDevExt->pkeyboard);
+					if (pDevExt->pmouse)
+					{
+						ObReferenceObject(pDevExt->pmouse);
+						newrel->Objects[newrel->Count++] = pDevExt->pmouse;
+						KdPrint(("IRP_MN_QUERY_DEVICE_RELATIONS mouse\n"));
+					}
+					
+					if (pDevExt->pkeyboard)
+					{
+						ObReferenceObject(pDevExt->pkeyboard);
+						newrel->Objects[newrel->Count++] = pDevExt->pkeyboard;
+						KdPrint(("IRP_MN_QUERY_DEVICE_RELATIONS keyboard\n"));
+					}
+					
+					pIrp->IoStatus.Information =  newrel;
+					status=STATUS_SUCCESS;
+				}						// build new list
+				else
+					status = STATUS_INSUFFICIENT_RESOURCES;
+				
+				pIrp->IoStatus.Status = status;
+				
 				IoCompleteRequest(pIrp, IO_NO_INCREMENT);
 				ReleaseRemoveLock(&pDevExt->RemoveLock, pIrp);
 				status=STATUS_SUCCESS;
+				KdPrint(("IRP_MN_QUERY_DEVICE_RELATIONS success\n"));
 			}
 			else{
 				IoSkipCurrentIrpStackLocation (pIrp);

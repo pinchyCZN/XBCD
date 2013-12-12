@@ -210,6 +210,7 @@ typedef struct _DEVICE_EXTENSION{
     PDEVICE_OBJECT pkeyboard;
     PDEVICE_OBJECT pxbox;
 	unsigned __int64 tick;
+	int child_count;
 	int comp_dev_num;
 
 	/* Overall number of layouts */

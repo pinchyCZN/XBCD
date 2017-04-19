@@ -93,11 +93,6 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 wdm.lib /nologo /base:"0x10000" /version:4.0 /entry:"DriverEntry@8" /subsystem:windows /pdb:none /debug /debugtype:both /machine:I386 /nodefaultlib /out:"debug\xbcd.sys" /libpath:"$(DDKPATH)\libchk\i386" /libpath:"$(DDKPATH)\lib\i386" -MERGE:_PAGE=PAGE -MERGE:_TEXT=.text -MERGE:.rdata=.text -SECTION:INIT,d -OPT:REF -FORCE:MULTIPLE -RELEASE -FULLBUILD -IGNORE:4001,4037,4039,4049,4065,4070,4078,4087,4089,4096 -osversion:4.00 -optidata -driver -align:0x20 -subsystem:native,4.00 -debug:notmapped,FULL
 # ADD LINK32 wdm.lib usbd.lib hidclass.lib /nologo /base:"0x10000" /version:4.0 /entry:"DriverEntry@8" /subsystem:windows /pdb:none /debug /debugtype:both /machine:I386 /nodefaultlib /out:"debug\xbcd.sys" /libpath:"C:\DEV\MSVC_Projects\WinDDK\lib\win7\i386\\" /libpath:"E:\DEV\WinDDK\lib\wxp\i386\\" -MERGE:_PAGE=PAGE -MERGE:_TEXT=.text -MERGE:.rdata=.text -SECTION:INIT,d -OPT:REF -FORCE:MULTIPLE -RELEASE -FULLBUILD -IGNORE:4001,4037,4039,4049,4065,4070,4078,4087,4089,4096 -osversion:4.00 -optidata -driver -align:0x20 -subsystem:native,4.00 -debug:notmapped,FULL
-# Begin Special Build Tool
-TargetPath=.\debug\xbcd.sys
-SOURCE="$(InputPath)"
-PostBuild_Cmds=copy $(TargetPath)  "C:\WINDOWS\system32\drivers\"
-# End Special Build Tool
 
 !ENDIF 
 
